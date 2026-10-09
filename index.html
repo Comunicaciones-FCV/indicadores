@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tablero Comunicaciones FCV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@85,600;85,700;100,500&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: cabecera con selector de mes → resumen (fichas + lectura) → gráficos por indicador → matriz mes a mes → comunicación interna */
+:root {
+  --bg: #f6f7f6;
+  --surface: #ffffff;
+  --ink: #15201d;
+  --ink-2: #4b5753;
+  --ink-3: #78837f;
+  --line: #dde2df;
+  --accent: #0f6b5c;
+  --accent-soft: #e2efec;
+  --s1: #2a78d6;   /* serie FCV */
+  --s2: #eb6834;   /* serie Oficios */
+  --band: rgba(12,163,12,.12);
+  --grid: #e8ecea;
+  --good: #0ca30c; --warn: #fab219; --serious: #ec835a; --crit: #d03b3b; --none: #a5aeab;
+  --good-ink: #0a6e0a; --warn-ink: #8a5a00; --serious-ink: #a8481f; --crit-ink: #b02a2a;
+  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121715; --surface: #1a201e; --ink: #edf1ef; --ink-2: #b9c3bf; --ink-3: #8a9591; --line: #2d3532;
+  --accent: #5cc2ad; --accent-soft: #1f2f2b; --s1: #3987e5; --s2: #d95926; --band: rgba(12,163,12,.2); --grid: #262d2a;
+  --good-ink: #4fd04f; --warn-ink: #fab219; --serious-ink: #ec835a; --crit-ink: #f07272; --none: #5f6966;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #121715; --surface: #1a201e; --ink: #edf1ef; --ink-2: #b9c3bf; --ink-3: #8a9591; --line: #2d3532;
+  --accent: #5cc2ad; --accent-soft: #1f2f2b; --s1: #3987e5; --s2: #d95926; --band: rgba(12,163,12,.2); --grid: #262d2a;
+  --good-ink: #4fd04f; --warn-ink: #fab219; --serious-ink: #ec835a; --crit-ink: #f07272; --none: #5f6966;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 400 15px/1.5 var(--f-body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); font-stretch: 85%; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.6rem, 3.6vw, 2.3rem); font-weight: 700; line-height: 1.1; }
+h2 { font-size: 1.3rem; font-weight: 700; }
+h3 { font-size: 1rem; font-weight: 600; }
+p { margin: 0; }
+.eyebrow { font: 600 .74rem/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.muted { color: var(--ink-3); font-size: .86rem; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Cabecera */
+header.top { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: end; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
+header.top .t { display: grid; gap: 8px; min-width: 0; max-width: 62ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.field { display: grid; gap: 4px; font-size: .8rem; color: var(--ink-2); }
+select, .btn { font: 600 .92rem var(--f-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; }
+.btn { cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.btn:hover, select:hover { border-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.source { font-size: .8rem; color: var(--ink-3); }
+.drop { border: 1.5px dashed var(--line); border-radius: 8px; padding: 10px 14px; font-size: .85rem; color: var(--ink-2); }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.msg { font-size: .85rem; }
+.msg.err { color: var(--crit-ink); }
+.msg.ok { color: var(--good-ink); }
+
+/* Resumen */
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.tile .k { font-size: .82rem; color: var(--ink-2); font-weight: 600; }
+.tile .v { font: 700 2rem/1.05 var(--f-display); font-stretch: 85%; font-variant-numeric: tabular-nums; }
+.tile .v small { font-size: .95rem; font-weight: 500; color: var(--ink-2); }
+.tile .d { font-size: .85rem; color: var(--ink-2); }
+.reading { background: var(--accent-soft); border-radius: 8px; padding: 16px 18px; display: grid; gap: 8px; }
+.reading ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; max-width: 95ch; }
+
+/* Estado (semáforo) */
+.chip { display: inline-flex; align-items: center; gap: 5px; font-size: .78rem; font-weight: 600; line-height: 1; padding: 4px 8px 4px 6px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); white-space: nowrap; width: fit-content; }
+.chip i { width: 14px; height: 14px; border-radius: 50%; display: inline-grid; place-items: center; font-style: normal; font-size: 10px; color: #fff; font-weight: 700; }
+.st-ok i { background: var(--good); } .st-ok { color: var(--good-ink); }
+.st-prog i { background: var(--warn); color: #3a2a00; } .st-prog { color: var(--warn-ink); }
+.st-bajo i { background: var(--crit); } .st-bajo { color: var(--crit-ink); }
+.st-rev i { background: var(--serious); } .st-rev { color: var(--serious-ink); }
+.st-nd i, .st-pend i { background: var(--none); } .st-nd, .st-pend { color: var(--ink-3); }
+
+/* Secciones y gráficos */
+section { display: grid; gap: 14px; }
+.sec-head { display: grid; gap: 4px; max-width: 80ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.panel .ph { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; align-items: baseline; }
+.goal { font-size: .84rem; color: var(--ink-2); }
+.goal b { color: var(--ink); }
+.chart { position: relative; height: 280px; }
+.chart.sm { height: 190px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 12px; }
+.grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 12px; }
+.grid4 > .panel { padding: 12px; border-style: dashed; }
+.chart canvas { max-width: 100%; }
+.note { font-size: .82rem; color: var(--serious-ink); }
+
+/* Matriz */
+.scroll { overflow-x: auto; }
+table.matrix { border-collapse: collapse; width: 100%; min-width: 760px; font-size: .86rem; }
+.matrix th, .matrix td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: center; vertical-align: middle; }
+.matrix th { font: 600 .74rem var(--f-display); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.matrix th:first-child, .matrix td:first-child { text-align: left; padding-left: 0; }
+.matrix td:first-child { font-weight: 600; min-width: 170px; }
+.matrix td .val { display: block; font-size: .78rem; color: var(--ink-2); font-variant-numeric: tabular-nums; margin-top: 3px; }
+.matrix td.sel, .matrix th.sel { background: var(--accent-soft); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Interna */
+.int-card { display: grid; gap: 8px; }
+.int-card .goal { font-size: .88rem; }
+
+footer { font-size: .8rem; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 4px; }
+
+@media print {
+  .controls, .drop, .msg { display: none !important; }
+  body { background: #fff; }
+  .panel, .tile { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="t">
+    <span class="eyebrow">Fundación Cristo Vive · Depto. Comunicaciones</span>
+    <h1>Indicadores de comunicaciones <span id="anio">2026</span></h1>
+    <p class="source" id="fuente"></p>
+  </div>
+  <div class="controls">
+    <label class="field" for="mes">Mes a reportar
+      <select id="mes"></select>
+    </label>
+    <label class="btn" for="archivo">Cargar Excel actualizado
+      <input id="archivo" type="file" accept=".xlsx,.xls" hidden>
+    </label>
+  </div>
+</header>
+<div class="drop" id="drop">También puedes arrastrar aquí el archivo <b>INDICADORES ÁREAS FCV.xlsx</b> descargado desde Drive. Se lee solo en tu navegador; no se sube a ningún servidor. <span class="msg" id="msg"></span></div>
+
+<section aria-labelledby="h-resumen">
+  <div class="sec-head">
+    <span class="eyebrow">Resumen</span>
+    <h2 id="h-resumen">Cómo vamos en <span id="mesNombre"></span></h2>
+  </div>
+  <div class="summary" id="tiles"></div>
+  <div class="reading">
+    <h3>Lectura para dirección ejecutiva</h3>
+    <ul id="lectura"></ul>
+  </div>
+</section>
+
+<section aria-labelledby="h-ext">
+  <div class="sec-head">
+    <span class="eyebrow">Iniciativa 3 · Comunicaciones externas</span>
+    <h2 id="h-ext">Visibilidad de la fundación</h2>
+    <p class="muted">Indicadores de medición mensual. Pasa el cursor (o toca) sobre los gráficos para ver el valor exacto de cada mes.</p>
+  </div>
+
+  <div class="panel">
+    <div class="ph">
+      <h3>Visitas únicas al sitio web</h3>
+      <span class="goal">Meta anual: <b>+10% de visitantes únicos</b>. Línea punteada = base + 10% (base: <span id="baseTxt"></span>).</span>
+    </div>
+    <div class="chart"><canvas id="cWeb" role="img" aria-label="Visitas únicas mensuales a los sitios FCV y FCV Oficios"></canvas></div>
+  </div>
+
+  <div class="panel">
+    <div class="ph">
+      <h3>Engagement en redes sociales</h3>
+      <span class="goal">Franja verde = rango esperado según número de seguidores.</span>
+    </div>
+    <div class="grid4" id="engGrid"></div>
+  </div>
+
+  <div class="panel">
+    <div class="ph">
+      <h3>Menciones en medios externos</h3>
+      <span class="goal">Meta: <b>al menos 1 aparición mensual</b>. <span id="mencAcum"></span></span>
+    </div>
+    <div class="chart"><canvas id="cMenc" role="img" aria-label="Menciones mensuales en medios externos"></canvas></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-matriz">
+  <div class="sec-head">
+    <span class="eyebrow">Control mes a mes</span>
+    <h2 id="h-matriz">Cumplimiento por indicador</h2>
+    <div class="legend" id="leyenda"></div>
+  </div>
+  <div class="panel scroll"><table class="matrix" id="matriz"></table></div>
+</section>
+
+<section aria-labelledby="h-int">
+  <div class="sec-head">
+    <span class="eyebrow">Iniciativas 1 y 2 · Comunicaciones internas</span>
+    <h2 id="h-int">Medición semestral y por evento</h2>
+    <p class="muted">Estos indicadores se alimentan de encuestas. Aparecen como pendientes hasta que la planilla registre un resultado.</p>
+  </div>
+  <div class="grid2" id="interna"></div>
+</section>
+
+<footer>
+  <p>Criterios: visitas web se comparan contra el primer mes con datos del año (o la base definida en <code>CONFIG.baseWeb</code>). Engagement: “Cumple” si el valor alcanza el mínimo del rango esperado. Valores de engagement sobre 100% se marcan “Revisar dato” y no se grafican.</p>
+  <p id="pie"></p>
+</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="datos/comunicaciones.js"></script>
+<script>
+/* ===================== Configuración ===================== */
+const CONFIG = {
+  // Base para medir el crecimiento web. null = primer mes con datos del año.
+  // Si tienen el promedio 2025, escríbanlo aquí, p. ej. { fcv: 3200, oficios: 3500 }.
+  baseWeb: { fcv: null, oficios: null },
+  metaWeb: 0.10,
+  // Rango esperado de engagement (%), según planilla.
+  redes: [
+    { id: 'ig_fcv', nombre: 'Instagram FCV', cuenta: 'fcv', red: 'IG', min: 2.5, max: 5.5 },
+    { id: 'fb_fcv', nombre: 'Facebook FCV', cuenta: 'fcv', red: 'FB', min: 4.7, max: 5.6 },
+    { id: 'lk_fcv', nombre: 'LinkedIn FCV', cuenta: 'fcv', red: 'LK', min: 2.0, max: null },
+    { id: 'fb_of', nombre: 'Facebook Oficios', cuenta: 'oficios', red: 'FB', min: 3.5, max: 4.6 },
+  ],
+  metaMenciones: 1,
+  // Opcional: URL CSV de la pestaña publicada en la web desde Google Sheets
+  // (Archivo › Compartir › Publicar en la web › Comunicaciones › CSV). Solo funciona
+  // con el tablero alojado en un sitio propio (p. ej. GitHub Pages).
+  urlCsv: '',
+};
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MES_C = MESES.map(m => m.slice(0,3));
+
+/* ===================== Lectura de la planilla ===================== */
+const norm = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+const decimal = s => { if (s == null) return null; const n = parseFloat(String(s).replace(',', '.')); return isNaN(n) ? null : n; };
+const entero = s => { if (s == null) return null; const n = parseInt(String(s).replace(/[.,\s]/g, ''), 10); return isNaN(n) ? null : n; };
+const vacio = v => v == null || /^\s*-?\s*$/.test(String(v));
+
+function interpretar(celdas) {
+  const hi = celdas.findIndex(r => r && r.some(c => norm(c) === 'enero'));
+  if (hi < 0) throw new Error('No encontré la fila de encabezados con los meses (Enero, Febrero…).');
+  const head = celdas[hi].map(norm);
+  const colMes = MESES.map(m => head.indexOf(norm(m)));
+  const colMeta = head.findIndex(h => h.startsWith('meta'));
+  const colPer = head.findIndex(h => h.startsWith('periodo'));
+  const filas = celdas.slice(hi + 1);
+  const buscar = clave => filas.find(r => r && norm(r[1]).includes(clave)) || [];
+  const meses = fila => colMes.map(c => (c >= 0 ? fila[c] : null));
+  const titulo = celdas.slice(0, hi).flat().filter(Boolean).map(String);
+
+  const fWeb = buscar('visitas unicas');
+  const web = meses(fWeb).map(v => {
+    if (vacio(v)) return null;
+    const s = String(v);
+    const fcv = s.match(/FCV\s*:\s*([\d.,]+)/i), of = s.match(/Oficios\s*:\s*([\d.,]+)/i);
+    return { fcv: fcv ? entero(fcv[1]) : null, oficios: of ? entero(of[1]) : null, bruto: s };
+  });
+
+  const fEng = buscar('engagement');
+  const eng = meses(fEng).map(v => {
+    if (vacio(v)) return null;
+    const s = String(v), out = { bruto: s };
+    const corte = s.search(/oficios/i);
+    const partes = { fcv: corte >= 0 ? s.slice(0, corte) : s, oficios: corte >= 0 ? s.slice(corte) : '' };
+    for (const [cuenta, txt] of Object.entries(partes)) {
+      for (const m of txt.matchAll(/\b(IG|FB|LK)\s*:\s*(-|\d+(?:[.,]\d+)?)/gi)) {
+        out[cuenta + '_' + m[1].toUpperCase()] = m[2] === '-' ? null : decimal(m[2]);
+      }
+    }
+    return out;
+  });
+
+  const fMenc = buscar('menciones');
+  const menc = meses(fMenc).map(v => (vacio(v) ? null : decimal(v)));
+
+  const internas = ['se informa', 'clara y util', 'participaron', 'satisfaccion'].map(k => {
+    const f = buscar(k);
+    const vals = meses(f).filter(v => !vacio(v));
+    return { indicador: String(f[1] ?? '').trim(), periodo: String(f[colPer] ?? '').trim(), meta: String(f[colMeta] ?? '').trim(), valores: vals };
+  });
+
+  return { web, eng, menc, internas, titulo, metaRedesTxt: String(fEng[colMeta] ?? '') };
+}
+
+/* ===================== Estados ===================== */
+const EST = {
+  ok:   { c: 'st-ok', i: '✓', t: 'Cumple' },
+  prog: { c: 'st-prog', i: '!', t: 'En camino' },
+  bajo: { c: 'st-bajo', i: '✕', t: 'Bajo meta' },
+  rev:  { c: 'st-rev', i: '?', t: 'Revisar dato' },
+  nd:   { c: 'st-nd', i: '–', t: 'Sin registro' },
+  base: { c: 'st-nd', i: '●', t: 'Mes base' },
+  pend: { c: 'st-pend', i: '…', t: 'Pendiente' },
+};
+const chip = (k, txt) => `<span class="chip ${EST[k].c}"><i aria-hidden="true">${EST[k].i}</i>${txt ?? EST[k].t}</span>`;
+const fmtN = n => n == null ? '—' : n.toLocaleString('es-CL');
+const fmtP = (n, d = 1) => n == null ? '—' : n.toLocaleString('es-CL', { minimumFractionDigits: d, maximumFractionDigits: d }) + '%';
+const fmtVar = n => (n > 0 ? '+' : '') + fmtP(n * 100);
+
+let D, BASE;
+
+function bases() {
+  const primero = k => { const i = D.web.findIndex(w => w && w[k] != null); return i < 0 ? null : { v: D.web[i][k], mes: MESES[i] }; };
+  const b = {};
+  for (const k of ['fcv', 'oficios']) b[k] = CONFIG.baseWeb[k] != null ? { v: CONFIG.baseWeb[k], mes: 'base definida' } : primero(k);
+  return b;
+}
+function estadoWeb(i, k) {
+  const w = D.web[i]; if (!w || w[k] == null || !BASE[k]) return { k: 'nd' };
+  const varr = w[k] / BASE[k].v - 1;
+  if (CONFIG.baseWeb[k] == null && MESES[i] === BASE[k].mes) return { k: 'base', val: w[k], varr };
+  return { k: varr >= CONFIG.metaWeb ? 'ok' : varr >= 0 ? 'prog' : 'bajo', val: w[k], varr };
+}
+function estadoRed(i, r) {
+  const e = D.eng[i]; const v = e ? e[r.cuenta + '_' + r.red] : undefined;
+  if (v == null) return { k: 'nd' };
+  if (v > 100) return { k: 'rev', val: v };
+  return { k: v >= r.min ? 'ok' : 'bajo', val: v };
+}
+function estadoMenc(i) {
+  const v = D.menc[i]; if (v == null) return { k: 'nd' };
+  return { k: v >= CONFIG.metaMenciones ? 'ok' : 'bajo', val: v };
+}
+const ultimoMes = () => {
+  let u = -1;
+  MESES.forEach((_, i) => { if (D.web[i] || D.eng[i] || D.menc[i] != null) u = i; });
+  return u;
+};
+
+/* ===================== Render ===================== */
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const charts = [];
+
+function render() {
+  const sel = +$('mes').value;
+  $('mesNombre').textContent = MESES[sel].toLowerCase();
+  renderTiles(sel); renderLectura(sel); renderMatriz(sel); renderInterna(); renderCharts(sel);
+}
+
+function renderTiles(i) {
+  const t = [];
+  for (const [k, nom] of [['fcv', 'Visitas únicas · web FCV'], ['oficios', 'Visitas únicas · web FCV Oficios']]) {
+    const e = estadoWeb(i, k);
+    t.push(`<div class="tile"><span class="k">${nom}</span>
+      <span class="v num">${fmtN(e.val)}</span>
+      <span class="d">${e.varr != null ? `${fmtVar(e.varr)} vs ${BASE[k].mes.toLowerCase()} · meta +${CONFIG.metaWeb * 100}%` : 'Sin dato este mes'}</span>
+      ${chip(e.k, e.k === 'ok' ? 'Meta lograda' : e.k === 'bajo' ? 'Bajo la base' : undefined)}</div>`);
+  }
+  const est = CONFIG.redes.map(r => ({ r, e: estadoRed(i, r) }));
+  const medibles = est.filter(x => x.e.k === 'ok' || x.e.k === 'bajo');
+  const ok = medibles.filter(x => x.e.k === 'ok').length;
+  const rev = est.filter(x => x.e.k === 'rev').length;
+  t.push(`<div class="tile"><span class="k">Engagement en redes</span>
+    <span class="v num">${ok}<small> de ${medibles.length} redes en meta</small></span>
+    <span class="d">${est.filter(x => x.e.val != null && x.e.k !== 'rev').map(x => `${x.r.nombre}: ${fmtP(x.e.val, 2)}`).join(' · ') || 'Sin datos este mes'}</span>
+    ${medibles.length ? chip(ok === medibles.length ? 'ok' : ok ? 'prog' : 'bajo', ok === medibles.length ? 'Todas en meta' : ok ? 'Parcial' : 'Bajo meta') : chip('nd')}
+    ${rev ? chip('rev', rev + ' dato por revisar') : ''}</div>`);
+  const m = estadoMenc(i);
+  const acum = D.menc.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
+  t.push(`<div class="tile"><span class="k">Menciones en medios</span>
+    <span class="v num">${fmtN(m.val)}<small> en el mes</small></span>
+    <span class="d">${fmtN(acum)} acumuladas a ${MESES[i].toLowerCase()} · meta: ${CONFIG.metaMenciones} al mes</span>
+    ${chip(m.k)}</div>`);
+  const int = D.internas.filter(x => x.valores.length).length;
+  t.push(`<div class="tile"><span class="k">Comunicación interna (encuestas)</span>
+    <span class="v num">${int}<small> de ${D.internas.length} medidos</small></span>
+    <span class="d">Medición semestral y post evento</span>${chip(int ? 'prog' : 'pend', int ? 'En medición' : 'Pendiente')}</div>`);
+  $('tiles').innerHTML = t.join('');
+}
+
+function renderLectura(i) {
+  const L = [];
+  for (const [k, nom] of [['fcv', 'El sitio FCV'], ['oficios', 'El sitio FCV Oficios']]) {
+    const e = estadoWeb(i, k);
+    if (e.val == null) continue;
+    const prev = i > 0 && D.web[i - 1] ? D.web[i - 1][k] : null;
+    const vsPrev = prev ? ` (${fmtVar(e.val / prev - 1)} respecto de ${MESES[i - 1].toLowerCase()})` : '';
+    L.push(`${nom} registró <b>${fmtN(e.val)}</b> visitas únicas${vsPrev}, ${fmtVar(e.varr)} frente a ${BASE[k].mes.toLowerCase()}. ${e.k === 'base' ? 'Es el mes de referencia.' : e.k === 'ok' ? 'Ya supera la meta anual de +10%.' : e.k === 'prog' ? 'Crece, pero aún no alcanza el +10% anual.' : 'Está bajo la base del año.'}`);
+  }
+  const red = CONFIG.redes.map(r => ({ r, e: estadoRed(i, r) }));
+  const en = red.filter(x => x.e.k === 'ok').map(x => x.r.nombre), bajo = red.filter(x => x.e.k === 'bajo'), rv = red.filter(x => x.e.k === 'rev');
+  if (en.length) L.push(`En redes, <b>${en.join(' y ')}</b> ${en.length > 1 ? 'alcanzan' : 'alcanza'} el engagement esperado.`);
+  bajo.forEach(x => L.push(`${x.r.nombre} marca ${fmtP(x.e.val, 2)}, bajo el mínimo esperado de ${fmtP(x.r.min)}.`));
+  rv.forEach(x => L.push(`${x.r.nombre} reporta ${fmtP(x.e.val, 0)}: el valor excede el 100% y conviene revisar la fórmula de cálculo antes de informarlo.`));
+  const m = estadoMenc(i);
+  if (m.val != null) {
+    const conDato = D.menc.slice(0, i + 1).filter(v => v != null);
+    L.push(`Hubo <b>${fmtN(m.val)} menciones</b> en medios externos. La meta mensual se cumplió en ${conDato.filter(v => v >= CONFIG.metaMenciones).length} de ${conDato.length} meses con registro${conDato.length < i + 1 ? ` (${i + 1 - conDato.length} sin registro)` : ''}.`);
+  }
+  if (!D.internas.some(x => x.valores.length)) L.push('Las encuestas de comunicación interna aún no registran resultados en la planilla.');
+  $('lectura').innerHTML = L.map(x => `<li>${x}</li>`).join('') || '<li>Sin datos para este mes.</li>';
+}
+
+function renderMatriz(sel) {
+  const hasta = Math.max(ultimoMes(), sel);
+  const cols = MESES.slice(0, Math.max(hasta + 1, 1));
+  const filas = [
+    ['Visitas web FCV', i => { const e = estadoWeb(i, 'fcv'); return [e.k, e.varr != null ? fmtN(e.val) + ' · ' + fmtVar(e.varr) : '']; }],
+    ['Visitas web Oficios', i => { const e = estadoWeb(i, 'oficios'); return [e.k, e.varr != null ? fmtN(e.val) + ' · ' + fmtVar(e.varr) : '']; }],
+    ...CONFIG.redes.map(r => ['Engagement ' + r.nombre, i => { const e = estadoRed(i, r); return [e.k, e.val != null ? fmtP(e.val, e.val > 100 ? 0 : 2) : '']; }]),
+    ['Menciones en medios', i => { const e = estadoMenc(i); return [e.k, e.val != null ? fmtN(e.val) : '']; }],
+  ];
+  const th = cols.map((m, i) => `<th class="${i === sel ? 'sel' : ''}">${MES_C[i]}</th>`).join('');
+  const tb = filas.map(([n, f]) => `<tr><td>${n}</td>${cols.map((_, i) => { const [k, v] = f(i);
+    return `<td class="${i === sel ? 'sel' : ''}" title="${EST[k].t}${v ? ': ' + v : ''}"><span class="chip ${EST[k].c}" aria-label="${EST[k].t}"><i aria-hidden="true">${EST[k].i}</i></span><span class="val">${v || '&nbsp;'}</span></td>`; }).join('')}</tr>`).join('');
+  $('matriz').innerHTML = `<thead><tr><th>Indicador</th>${th}</tr></thead><tbody>${tb}</tbody>`;
+  $('leyenda').innerHTML = [['ok', 'Cumple / meta lograda'], ['prog', 'En camino (web: crece, < +10%)'], ['bajo', 'Bajo meta'], ['rev', 'Revisar dato'], ['nd', 'Sin registro'], ['base', 'Mes base (web)']].map(([k, t]) => chip(k, t)).join('');
+}
+
+function renderInterna() {
+  $('interna').innerHTML = D.internas.map(x => `<div class="panel int-card">
+    <h3>${x.indicador.replace(/\s+/g, ' ')}</h3>
+    <p class="goal"><b>Meta:</b> ${x.meta.replace(/infiormación insititucional/i, 'información institucional')}</p>
+    <p class="muted">${x.periodo}</p>
+    ${x.valores.length ? chip('prog', 'Resultado: ' + x.valores.join(' · ')) : chip('pend', 'Pendiente de medición')}
+  </div>`).join('');
+}
+
+function renderCharts(sel) {
+  charts.splice(0).forEach(c => c.destroy());
+  const ink2 = css('--ink-2'), grid = css('--grid'), s1 = css('--s1'), s2 = css('--s2'), band = css('--band'), good = css('--good'), surf = css('--surface');
+  Chart.defaults.font.family = css('--f-body'); Chart.defaults.color = ink2;
+  const hasta = Math.max(ultimoMes(), sel, 5);
+  const labels = MES_C.slice(0, hasta + 1);
+  const cut = a => a.slice(0, hasta + 1);
+  const base = { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'top', align: 'start', labels: { usePointStyle: true, boxWidth: 8, boxHeight: 8, padding: 14 } },
+      tooltip: { backgroundColor: css('--ink'), titleColor: surf, bodyColor: surf, padding: 10, cornerRadius: 6 } },
+    scales: { x: { grid: { display: false }, border: { color: grid } }, y: { beginAtZero: true, grid: { color: grid }, border: { display: false }, ticks: { maxTicksLimit: 6 } } } };
+  const punto = (c, i0) => ({ pointRadius: ctx => (ctx.dataIndex === sel ? 6 : 4), pointHoverRadius: 7, pointBackgroundColor: c, pointBorderColor: surf, pointBorderWidth: 2 });
+
+  // Web
+  const fcv = cut(D.web.map(w => (w ? w.fcv : null))), of = cut(D.web.map(w => (w ? w.oficios : null)));
+  const meta = k => BASE[k] ? labels.map(() => Math.round(BASE[k].v * (1 + CONFIG.metaWeb))) : [];
+  charts.push(new Chart($('cWeb'), { type: 'line', data: { labels, datasets: [
+    { label: 'Sitio FCV', data: fcv, borderColor: s1, borderWidth: 2, tension: 0, ...punto(s1) },
+    { label: 'Sitio FCV Oficios', data: of, borderColor: s2, borderWidth: 2, tension: 0, ...punto(s2) },
+    { label: 'Meta FCV (+10%)', data: meta('fcv'), borderColor: s1, borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0 },
+    { label: 'Meta Oficios (+10%)', data: meta('oficios'), borderColor: s2, borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0 },
+  ] }, options: { ...base, plugins: { ...base.plugins, tooltip: { ...base.plugins.tooltip, callbacks: { label: c => ` ${c.dataset.label}: ${fmtN(c.parsed.y)}` } } } } }));
+
+  // Engagement (small multiples)
+  $('engGrid').innerHTML = CONFIG.redes.map(r => `<div class="panel">
+      <div class="ph"><h3>${r.nombre}</h3><span class="goal">Esperado: <b>${r.max ? fmtP(r.min) + '–' + fmtP(r.max) : '≥ ' + fmtP(r.min)}</b></span></div>
+      <div class="chart sm"><canvas id="c_${r.id}" role="img" aria-label="Engagement mensual ${r.nombre}"></canvas></div>
+      <p class="note" id="n_${r.id}"></p></div>`).join('');
+  for (const r of CONFIG.redes) {
+    const raw = cut(D.eng.map(e => (e ? e[r.cuenta + '_' + r.red] ?? null : null)));
+    const fuera = raw.map((v, i) => (v != null && v > 100 ? `${MES_C[i]}: ${fmtP(v, 0)}` : null)).filter(Boolean);
+    const vals = raw.map(v => (v != null && v > 100 ? null : v));
+    $('n_' + r.id).textContent = fuera.length ? `Fuera de escala, revisar cálculo (${fuera.join(' · ')}).` : '';
+    const techo = Math.max(r.max ?? r.min * 2, ...vals.filter(v => v != null)) * 1.15;
+    charts.push(new Chart($('c_' + r.id), { type: 'line', data: { labels, datasets: [
+      { label: 'mín', data: labels.map(() => r.min), borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, fill: false },
+      { label: 'máx', data: labels.map(() => r.max ?? techo), borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, backgroundColor: band, fill: '-1' },
+      { label: r.nombre, data: vals, borderColor: r.cuenta === 'fcv' ? s1 : s2, borderWidth: 2, tension: 0, ...punto(r.cuenta === 'fcv' ? s1 : s2) },
+    ] }, options: { ...base, plugins: { legend: { display: false },
+        tooltip: { ...base.plugins.tooltip, filter: c => c.datasetIndex === 2, callbacks: { label: c => ` Engagement: ${fmtP(c.parsed.y, 2)}`, footer: () => `Esperado: ${r.max ? fmtP(r.min) + '–' + fmtP(r.max) : '≥ ' + fmtP(r.min)}` } } },
+      scales: { ...base.scales, y: { ...base.scales.y, max: Math.ceil(techo), ticks: { maxTicksLimit: 5, callback: v => v + '%' } } } } }));
+  }
+
+  // Menciones
+  const mc = cut(D.menc);
+  charts.push(new Chart($('cMenc'), { type: 'bar', data: { labels, datasets: [
+    { label: 'Menciones', data: mc, backgroundColor: mc.map((_, i) => (i === sel ? css('--accent') : s1)), borderRadius: { topLeft: 4, topRight: 4 }, borderSkipped: 'bottom', maxBarThickness: 36, order: 2 },
+    { type: 'line', label: 'Meta mensual', data: labels.map(() => CONFIG.metaMenciones), borderColor: good, borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0, order: 1 },
+  ] }, options: { ...base, plugins: { ...base.plugins, tooltip: { ...base.plugins.tooltip, callbacks: { label: c => c.datasetIndex === 0 && c.parsed.y == null ? ' Sin registro' : ` ${c.dataset.label}: ${fmtN(c.parsed.y)}` } } } } }));
+  const acum = D.menc.slice(0, sel + 1).reduce((a, b) => a + (b || 0), 0);
+  $('mencAcum').textContent = `Acumulado a ${MESES[sel].toLowerCase()}: ${fmtN(acum)}.`;
+}
+
+/* ===================== Carga de datos ===================== */
+function cargar(celdas, origen) {
+  D = interpretar(celdas);
+  BASE = bases();
+  $('baseTxt').textContent = ['fcv', 'oficios'].map(k => BASE[k] ? `${k === 'fcv' ? 'FCV' : 'Oficios'} ${fmtN(BASE[k].v)} en ${BASE[k].mes.toLowerCase()}` : '').filter(Boolean).join('; ');
+  $('fuente').textContent = origen;
+  const u = Math.max(ultimoMes(), 0);
+  $('mes').innerHTML = MESES.slice(0, u + 1).map((m, i) => `<option value="${i}">${m}</option>`).join('');
+  $('mes').value = u;
+  $('pie').textContent = `Fuente: ${origen}. Último mes con datos: ${MESES[u]}.`;
+  render();
+}
+
+async function leerExcel(file) {
+  const msg = $('msg');
+  try {
+    const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+    const nom = wb.SheetNames.find(n => /comunic/i.test(n));
+    if (!nom) throw new Error('El archivo no tiene una pestaña llamada “Comunicaciones”.');
+    const celdas = XLSX.utils.sheet_to_json(wb.Sheets[nom], { header: 1, defval: null, raw: true, blankrows: true });
+    cargar(celdas, `${file.name} · pestaña ${nom} · cargado ${new Date().toLocaleDateString('es-CL')}`);
+    msg.className = 'msg ok'; msg.textContent = ' Datos actualizados desde el archivo.';
+  } catch (e) { msg.className = 'msg err'; msg.textContent = ' No pude leer el archivo: ' + e.message; }
+}
+
+function csvAFilas(t) {
+  const filas = [[]]; let c = '', q = false;
+  for (let i = 0; i < t.length; i++) {
+    const ch = t[i];
+    if (q) { if (ch === '"' && t[i + 1] === '"') { c += '"'; i++; } else if (ch === '"') q = false; else c += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === ',') { filas.at(-1).push(c); c = ''; }
+    else if (ch === '\n') { filas.at(-1).push(c); filas.push([]); c = ''; }
+    else if (ch !== '\r') c += ch;
+  }
+  filas.at(-1).push(c);
+  return filas.map(r => r.map(v => (v === '' ? null : v)));
+}
+
+$('archivo').addEventListener('change', e => e.target.files[0] && leerExcel(e.target.files[0]));
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => e.dataTransfer.files[0] && leerExcel(e.dataTransfer.files[0]));
+$('mes').addEventListener('change', render);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => D && render());
+new MutationObserver(() => D && render()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+(async () => {
+  if (CONFIG.urlCsv) {
+    try {
+      const r = await fetch(CONFIG.urlCsv, { cache: 'no-store' });
+      if (!r.ok) throw new Error(r.status);
+      cargar(csvAFilas(await r.text()), `Google Sheets (en línea) · consultado ${new Date().toLocaleString('es-CL')}`);
+      return;
+    } catch (e) { console.warn('No se pudo leer la URL CSV; uso la copia local.', e); }
+  }
+  if (window.DATOS_FCV) cargar(window.DATOS_FCV.celdas, `${window.DATOS_FCV.fuente} · pestaña ${window.DATOS_FCV.hoja} · copia del ${new Date(window.DATOS_FCV.actualizado + 'T12:00').toLocaleDateString('es-CL')}`);
+  else $('msg').textContent = ' No hay datos cargados: sube el Excel de indicadores.';
+})();
+</script>
+</body>
+</html>
