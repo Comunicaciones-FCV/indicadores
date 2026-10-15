@@ -54,3 +54,14 @@ Supuestos ajustables en `CONFIG` (al inicio del script de `index.html`):
 ## Publicar en GitHub Pages
 
 *Settings › Pages › Deploy from a branch* y elegir la rama con `index.html` en la raíz.
+
+## Ruleta de premios (feria laboral)
+
+`ruleta/index.html` es una ruleta de premios con la identidad de FCV Discapacidad, pensada para
+mostrarse en un monitor del stand. Funciona sin conexión: basta abrir el archivo en Chrome
+(con internet carga además la tipografía Montserrat).
+
+- Se gira tocando la ruleta, el botón **¡Girar!** o con Enter / Espacio. Todos los casilleros tienen premio.
+- Botón **Premios** (abajo a la derecha): editar la lista (un premio por línea, 2 a 16) y ver el
+  historial de premios entregados. Ambos quedan guardados en el navegador de ese equipo.
+- **Pantalla completa** y **Sonido** también están abajo a la derecha.
