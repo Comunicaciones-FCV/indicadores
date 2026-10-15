@@ -6,213 +6,281 @@
 <title>Tablero Comunicaciones FCV</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@85,600;85,700;100,500&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;800&display=swap">
 <style>
-/* Layout: cabecera con selector de mes → resumen (fichas + lectura) → gráficos por indicador → matriz mes a mes → comunicación interna */
+/* Identidad FCV según el sistema de diseño institucional: paleta azul + amarillo, FF Neuwelt,
+   logo blanco sobre azul oscuro, patrón Caminos entrando por el borde derecho de la banda (nunca detrás de textos).
+   Layout: banda → objetivo + lectura del mes → modelo (3 pilares) → hacia la meta → evolución → control → foco 2026 */
+@font-face { font-family: "FF Neuwelt"; src: url("fonts/Neuwelt-Light.woff2") format("woff2"); font-weight: 300; font-display: swap; }
+@font-face { font-family: "FF Neuwelt"; src: url("fonts/Neuwelt-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "FF Neuwelt"; src: url("fonts/Neuwelt-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "FF Neuwelt"; src: url("fonts/Neuwelt-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "FF Neuwelt"; src: url("fonts/Neuwelt-ExtraBold.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+@font-face { font-family: "FF Neuwelt"; src: url("fonts/Neuwelt-Black.woff2") format("woff2"); font-weight: 900; font-display: swap; }
 :root {
-  --bg: #f6f7f6;
-  --surface: #ffffff;
-  --ink: #15201d;
-  --ink-2: #4b5753;
-  --ink-3: #78837f;
-  --line: #dde2df;
-  --accent: #0f6b5c;
-  --accent-soft: #e2efec;
-  --s1: #2a78d6;   /* serie FCV */
-  --s2: #eb6834;   /* serie Oficios */
-  --band: rgba(12,163,12,.12);
-  --grid: #e8ecea;
-  --good: #0ca30c; --warn: #fab219; --serious: #ec835a; --crit: #d03b3b; --none: #a5aeab;
+  color-scheme: light;
+  /* Paleta institucional */
+  --azul-oscuro: #183d68;
+  --azul: #0f5695;
+  --amarillo-oro: #f9b23f;
+  --amarillo-resaltado: #ffcf00;
+  --blanco: #ffffff;
+  /* Neutros derivados del azul (solo superficies y texto atenuado) */
+  --fondo: #ffffff;
+  --superficie: #f2f5f9;
+  --linea: #dde4ec;
+  --grid: #e8edf3;
+  --texto: var(--azul-oscuro);
+  --texto-2: var(--azul);
+  --texto-3: #56677d;
+  /* Series de gráficos */
+  --s-fcv: var(--azul);
+  --s-of: var(--amarillo-oro);
+  --banda: rgba(255, 207, 0, .26);
+  /* Estados (fijos, siempre con ícono y texto) */
+  --good: #0ca30c; --warn: #fab219; --serious: #ec835a; --crit: #d03b3b; --none: #a3aebb;
   --good-ink: #0a6e0a; --warn-ink: #8a5a00; --serious-ink: #a8481f; --crit-ink: #b02a2a;
-  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
-  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
-}
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #121715; --surface: #1a201e; --ink: #edf1ef; --ink-2: #b9c3bf; --ink-3: #8a9591; --line: #2d3532;
-  --accent: #5cc2ad; --accent-soft: #1f2f2b; --s1: #3987e5; --s2: #d95926; --band: rgba(12,163,12,.2); --grid: #262d2a;
-  --good-ink: #4fd04f; --warn-ink: #fab219; --serious-ink: #ec835a; --crit-ink: #f07272; --none: #5f6966;
-  color-scheme: dark;
-} }
-:root[data-theme="dark"] {
-  --bg: #121715; --surface: #1a201e; --ink: #edf1ef; --ink-2: #b9c3bf; --ink-3: #8a9591; --line: #2d3532;
-  --accent: #5cc2ad; --accent-soft: #1f2f2b; --s1: #3987e5; --s2: #d95926; --band: rgba(12,163,12,.2); --grid: #262d2a;
-  --good-ink: #4fd04f; --warn-ink: #fab219; --serious-ink: #ec835a; --crit-ink: #f07272; --none: #5f6966;
-  color-scheme: dark;
+  --f-sans: "FF Neuwelt", "Neuwelt", "Lexend", system-ui, sans-serif;
+  --radio-md: 12px;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-body { background: var(--bg); color: var(--ink); font: 400 15px/1.5 var(--f-body); }
-.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; display: grid; gap: 28px; }
-h1, h2, h3 { font-family: var(--f-display); font-stretch: 85%; text-wrap: balance; margin: 0; }
-h1 { font-size: clamp(1.6rem, 3.6vw, 2.3rem); font-weight: 700; line-height: 1.1; }
-h2 { font-size: 1.3rem; font-weight: 700; }
-h3 { font-size: 1rem; font-weight: 600; }
+body { background: var(--fondo); color: var(--texto); font: 400 15px/1.55 var(--f-sans); }
+b, strong { font-weight: 700; }
+h1, h2, h3 { font-family: var(--f-sans); text-wrap: balance; margin: 0; color: var(--azul-oscuro); }
+h2 { font-size: 1.5rem; font-weight: 800; line-height: 1.15; }
+h3 { font-size: 1rem; font-weight: 700; }
 p { margin: 0; }
-.eyebrow { font: 600 .74rem/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
-.muted { color: var(--ink-3); font-size: .86rem; }
 .num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--texto-3); font-size: .86rem; }
+code { font-size: .85em; }
+.etiqueta { font-weight: 700; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
 
-/* Cabecera */
-header.top { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: end; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
-header.top .t { display: grid; gap: 8px; min-width: 0; max-width: 62ch; }
-.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
-.field { display: grid; gap: 4px; font-size: .8rem; color: var(--ink-2); }
-select, .btn { font: 600 .92rem var(--f-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; }
+/* Banda superior con patrón Caminos */
+.band { position: relative; background: var(--azul-oscuro); color: var(--blanco); overflow: hidden; }
+.band canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.band-in { position: relative; max-width: 1200px; margin: 0 auto; padding-inline: 16px; padding-block: 28px; display: grid; gap: 14px; justify-items: start; }
+.band img.logo { height: 50px; width: auto; display: block; }
+.band h1 { color: var(--blanco); font-weight: 800; font-size: clamp(1.7rem, 4vw, 2.5rem); line-height: 1.05; }
+.band h1 .hl { color: var(--amarillo-resaltado); }
+.band .bajada { font-weight: 300; font-size: .95rem; opacity: .92; max-width: min(46ch, calc(100% - 96px)); }
+.band .etiqueta { background: var(--amarillo-resaltado); color: var(--azul-oscuro); border-radius: 999px; padding: 4px 12px; }
+
+.wrap { max-width: 1200px; margin: 0 auto; padding-inline: 16px; padding-block: 26px 48px; display: grid; gap: 38px; }
+.sec-num { font-weight: 900; color: var(--azul); }
+.sec-head { display: grid; gap: 6px; max-width: 85ch; }
+.sec-head h2 { display: flex; gap: 10px; align-items: baseline; }
+section { display: grid; gap: 14px; }
+
+/* Controles */
+.controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
+.field { display: grid; gap: 4px; font-size: .8rem; color: var(--texto-3); }
+select, .btn { font: 700 .92rem var(--f-sans); color: var(--azul-oscuro); background: var(--blanco); border: 2px solid var(--azul-oscuro); border-radius: 999px; padding: 8px 16px; }
 .btn { cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
-.btn:hover, select:hover { border-color: var(--accent); }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.source { font-size: .8rem; color: var(--ink-3); }
-.drop { border: 1.5px dashed var(--line); border-radius: 8px; padding: 10px 14px; font-size: .85rem; color: var(--ink-2); }
-.drop.over { border-color: var(--accent); background: var(--accent-soft); }
-.msg { font-size: .85rem; }
-.msg.err { color: var(--crit-ink); }
-.msg.ok { color: var(--good-ink); }
+.btn:hover, select:hover { background: var(--superficie); }
+:focus-visible { outline: 3px solid var(--amarillo-resaltado); outline-offset: 2px; }
+.drop { font-size: .82rem; color: var(--texto-3); flex: 1 1 260px; border: 2px dashed transparent; border-radius: var(--radio-md); padding: 6px 10px; }
+.drop.over { border-color: var(--azul); background: var(--superficie); }
+.msg.err { color: var(--crit-ink); } .msg.ok { color: var(--good-ink); }
 
-/* Resumen */
-.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
-.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
-.tile .k { font-size: .82rem; color: var(--ink-2); font-weight: 600; }
-.tile .v { font: 700 2rem/1.05 var(--f-display); font-stretch: 85%; font-variant-numeric: tabular-nums; }
-.tile .v small { font-size: .95rem; font-weight: 500; color: var(--ink-2); }
-.tile .d { font-size: .85rem; color: var(--ink-2); }
-.reading { background: var(--accent-soft); border-radius: 8px; padding: 16px 18px; display: grid; gap: 8px; }
-.reading ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; max-width: 95ch; }
+/* Objetivo + lectura */
+.intro { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 16px; }
+.objetivo { background: var(--azul-oscuro); color: var(--blanco); border-radius: 20px; padding: 24px; display: grid; gap: 12px; align-content: start; }
+.objetivo .etiqueta { color: var(--amarillo-resaltado); }
+.objetivo p.big { font-size: 1.3rem; font-weight: 500; line-height: 1.35; }
+.objetivo ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.objetivo li { font-size: .82rem; font-weight: 700; border: 1.5px solid rgba(255,255,255,.45); border-radius: 999px; padding: 4px 12px; }
+.lectura { background: var(--superficie); border-radius: 20px; padding: 22px 24px; display: grid; gap: 10px; min-width: 0; }
+.lectura ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+.lectura li::marker { color: var(--amarillo-oro); }
 
-/* Estado (semáforo) */
-.chip { display: inline-flex; align-items: center; gap: 5px; font-size: .78rem; font-weight: 600; line-height: 1; padding: 4px 8px 4px 6px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); white-space: nowrap; width: fit-content; }
-.chip i { width: 14px; height: 14px; border-radius: 50%; display: inline-grid; place-items: center; font-style: normal; font-size: 10px; color: #fff; font-weight: 700; }
+/* Modelo */
+.modelo { display: grid; grid-template-columns: minmax(220px, 290px) 1fr; gap: 24px; align-items: center; }
+@media (max-width: 760px) { .modelo { grid-template-columns: 1fr; } .tri { max-width: 250px; margin: 0 auto; } }
+.tri { width: 100%; }
+.tri svg { width: 100%; height: auto; display: block; overflow: visible; }
+.pilares { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 12px; }
+.pilar { background: var(--superficie); border-radius: 18px; padding: 16px 18px; display: grid; gap: 10px; align-content: start; border-top: 6px solid var(--pc); min-width: 0; }
+.pilar .ph { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pilar h3 { font-weight: 800; text-transform: uppercase; font-size: .9rem; letter-spacing: .03em; }
+.pilar .que { font-size: .8rem; color: var(--texto-3); }
+.pilar ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pilar li { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; font-size: .86rem; border-top: 1px solid var(--linea); padding-top: 8px; }
+.pilar li .v { grid-column: 1; color: var(--texto-3); font-size: .78rem; font-variant-numeric: tabular-nums; }
+.pilar li .chip { grid-row: 1 / span 2; grid-column: 2; }
+
+/* Chips de estado */
+.chip { display: inline-flex; align-items: center; gap: 5px; font-size: .76rem; font-weight: 700; line-height: 1; padding: 4px 9px 4px 5px; border-radius: 999px; background: var(--blanco); border: 1px solid var(--linea); white-space: nowrap; width: fit-content; }
+.chip i { width: 15px; height: 15px; border-radius: 50%; display: inline-grid; place-items: center; font-style: normal; font-size: 10px; color: #fff; font-weight: 800; }
+.chip.solo { padding: 3px; }
 .st-ok i { background: var(--good); } .st-ok { color: var(--good-ink); }
 .st-prog i { background: var(--warn); color: #3a2a00; } .st-prog { color: var(--warn-ink); }
 .st-bajo i { background: var(--crit); } .st-bajo { color: var(--crit-ink); }
 .st-rev i { background: var(--serious); } .st-rev { color: var(--serious-ink); }
-.st-nd i, .st-pend i { background: var(--none); } .st-nd, .st-pend { color: var(--ink-3); }
+.st-nd i, .st-pend i { background: var(--none); } .st-nd, .st-pend { color: var(--texto-3); }
 
-/* Secciones y gráficos */
-section { display: grid; gap: 14px; }
-.sec-head { display: grid; gap: 4px; max-width: 80ch; }
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 10px; min-width: 0; }
+/* Hacia la meta */
+.metas { background: var(--superficie); border-radius: 20px; padding: 18px 22px; display: grid; gap: 4px; }
+.metas h4 { margin: 14px 0 2px; font: 800 .78rem var(--f-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--azul-oscuro); display: flex; gap: 8px; align-items: center; }
+.metas h4::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--pc); }
+.metas h4:first-child { margin-top: 0; }
+.gap { display: grid; grid-template-columns: minmax(150px, 220px) minmax(160px, 1fr) minmax(170px, 270px); gap: 6px 16px; align-items: center; padding: 8px 0; border-top: 1px solid var(--linea); }
+@media (max-width: 760px) { .gap { grid-template-columns: 1fr; } }
+.gap .n { font-weight: 700; font-size: .88rem; }
+.gap .n small { display: block; font-weight: 400; color: var(--texto-3); font-size: .76rem; }
+.track { position: relative; height: 14px; background: var(--blanco); border: 1px solid var(--linea); border-radius: 999px; }
+.track .zone { position: absolute; top: 0; bottom: 0; background: var(--banda); border-left: 2px solid var(--amarillo-oro); }
+.track .fill { position: absolute; left: 0; top: 3px; bottom: 3px; border-radius: 999px; background: var(--fc); min-width: 4px; }
+.track .mk { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%); background: var(--fc); border: 2px solid #fff; box-shadow: 0 0 0 1px var(--azul-oscuro); }
+.gap .t { font-size: .84rem; color: var(--texto); }
+
+/* Paneles y gráficos */
+.panel { background: var(--superficie); border-radius: 18px; padding: 16px 18px; display: grid; gap: 10px; min-width: 0; }
 .panel .ph { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; align-items: baseline; }
-.goal { font-size: .84rem; color: var(--ink-2); }
-.goal b { color: var(--ink); }
+.goal { font-size: .82rem; color: var(--texto-2); }
+.goal b { color: var(--azul-oscuro); }
 .chart { position: relative; height: 280px; }
 .chart.sm { height: 190px; }
-.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 12px; }
-.grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 12px; }
-.grid4 > .panel { padding: 12px; border-style: dashed; }
 .chart canvas { max-width: 100%; }
-.note { font-size: .82rem; color: var(--serious-ink); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 12px; }
+.sub { background: var(--blanco); border-radius: var(--radio-md); padding: 12px; display: grid; gap: 8px; min-width: 0; }
+.note { font-size: .8rem; color: var(--serious-ink); }
+.pillar-tag { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; color: var(--texto-2); }
+.pillar-tag::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--pc); }
 
 /* Matriz */
 .scroll { overflow-x: auto; }
-table.matrix { border-collapse: collapse; width: 100%; min-width: 760px; font-size: .86rem; }
-.matrix th, .matrix td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: center; vertical-align: middle; }
-.matrix th { font: 600 .74rem var(--f-display); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+table.matrix { border-collapse: collapse; width: 100%; min-width: 760px; font-size: .84rem; }
+.matrix th, .matrix td { padding: 7px 5px; border-bottom: 1px solid var(--linea); text-align: center; vertical-align: middle; }
+.matrix th { font: 700 .72rem var(--f-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--texto-3); }
 .matrix th:first-child, .matrix td:first-child { text-align: left; padding-left: 0; }
-.matrix td:first-child { font-weight: 600; min-width: 170px; }
-.matrix td .val { display: block; font-size: .78rem; color: var(--ink-2); font-variant-numeric: tabular-nums; margin-top: 3px; }
-.matrix td.sel, .matrix th.sel { background: var(--accent-soft); }
+.matrix td:first-child { min-width: 180px; }
+.matrix tr.grp td { font-weight: 800; color: var(--azul-oscuro); font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; padding-top: 14px; border-bottom: 2px solid var(--pc); }
+.matrix td .val { display: block; font-size: .74rem; color: var(--texto-2); font-variant-numeric: tabular-nums; margin-top: 3px; }
+.matrix td.sel, .matrix th.sel { background: rgba(255, 207, 0, .16); }
 .legend { display: flex; flex-wrap: wrap; gap: 8px; }
 
-/* Interna */
-.int-card { display: grid; gap: 8px; }
-.int-card .goal { font-size: .88rem; }
+/* Foco 2026 */
+.focos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); gap: 12px; }
+.foco { background: var(--superficie); border-radius: 18px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; }
+.foco h3 { display: flex; gap: 10px; align-items: flex-start; }
+.foco h3::before { content: ""; flex: none; width: 18px; height: 18px; margin-top: 2px; border-radius: 50%; background: var(--fc); }
+.foco p { font-size: .85rem; color: var(--texto-2); }
 
-footer { font-size: .8rem; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 4px; }
-
-@media print {
-  .controls, .drop, .msg { display: none !important; }
-  body { background: #fff; }
-  .panel, .tile { break-inside: avoid; }
-}
+footer { font-size: .78rem; color: var(--texto-3); display: grid; gap: 4px; }
+.foot { background: var(--azul-oscuro); }
+.foot-in { max-width: 1200px; margin: 0 auto; padding-inline: 16px; padding-block: 22px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; color: var(--blanco); font-size: .85rem; }
+.foot-in img { height: 34px; width: auto; display: block; }
+@media print { .controls { display: none !important; } .panel, .pilar, .foco, .gap { break-inside: avoid; } }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-<header class="top">
-  <div class="t">
-    <span class="eyebrow">Fundación Cristo Vive · Depto. Comunicaciones</span>
-    <h1>Indicadores de comunicaciones <span id="anio">2026</span></h1>
-    <p class="source" id="fuente"></p>
-  </div>
-  <div class="controls">
-    <label class="field" for="mes">Mes a reportar
-      <select id="mes"></select>
-    </label>
-    <label class="btn" for="archivo">Cargar Excel actualizado
-      <input id="archivo" type="file" accept=".xlsx,.xls" hidden>
-    </label>
+<header class="band">
+  <canvas id="caminos" aria-hidden="true"></canvas>
+  <div class="band-in">
+    <img class="logo" src="marca/fcv-logo-horizontal-blanco.png" alt="Fundación Cristo Vive">
+    <span class="etiqueta">Área Adm. Central · Depto. Comunicaciones</span>
+    <h1>Comunicaciones 20<span class="hl">26</span></h1>
+    <p class="bajada">Tablero de indicadores mensuales para la dirección ejecutiva</p>
   </div>
 </header>
-<div class="drop" id="drop">También puedes arrastrar aquí el archivo <b>INDICADORES ÁREAS FCV.xlsx</b> descargado desde Drive. Se lee solo en tu navegador; no se sube a ningún servidor. <span class="msg" id="msg"></span></div>
 
-<section aria-labelledby="h-resumen">
-  <div class="sec-head">
-    <span class="eyebrow">Resumen</span>
-    <h2 id="h-resumen">Cómo vamos en <span id="mesNombre"></span></h2>
-  </div>
-  <div class="summary" id="tiles"></div>
-  <div class="reading">
-    <h3>Lectura para dirección ejecutiva</h3>
-    <ul id="lectura"></ul>
+<div class="wrap">
+
+<div class="controls">
+  <label class="field" for="mes">Mes a reportar
+    <select id="mes"></select>
+  </label>
+  <label class="btn" for="archivo">Cargar Excel actualizado
+    <input id="archivo" type="file" accept=".xlsx,.xls" hidden>
+  </label>
+  <div class="drop" id="drop">o arrastra aquí <b>INDICADORES ÁREAS FCV.xlsx</b>. Se lee solo en tu navegador. <span class="msg" id="msg"></span><br><span id="fuente"></span></div>
+</div>
+
+<section aria-labelledby="h-obj">
+  <div class="sec-head"><h2 id="h-obj"><span class="sec-num">I.</span> Lo que perseguimos</h2></div>
+  <div class="intro">
+    <div class="objetivo">
+      <span class="etiqueta">Objetivo 2026</span>
+      <p class="big">Proyectar el relato institucional para generar cohesión interna, legitimidad pública y acción sostenida.</p>
+      <span class="etiqueta">Desafíos compartidos</span>
+      <ul><li>Compromiso interno</li><li>Sostenibilidad</li><li>Posicionamiento institucional</li></ul>
+    </div>
+    <div class="lectura">
+      <h3>Lectura de <span id="mesNombre"></span> para dirección ejecutiva</h3>
+      <ul id="lectura"></ul>
+    </div>
   </div>
 </section>
 
-<section aria-labelledby="h-ext">
+<section aria-labelledby="h-mod">
   <div class="sec-head">
-    <span class="eyebrow">Iniciativa 3 · Comunicaciones externas</span>
-    <h2 id="h-ext">Visibilidad de la fundación</h2>
-    <p class="muted">Indicadores de medición mensual. Pasa el cursor (o toca) sobre los gráficos para ver el valor exacto de cada mes.</p>
+    <h2 id="h-mod"><span class="sec-num">II.</span> Modelo: cómo va cada pilar</h2>
+    <p class="muted">Cada indicador de la planilla se ubica en uno de los tres pilares del modelo. El punto de color en el triángulo resume el estado del pilar en el mes elegido.</p>
+  </div>
+  <div class="modelo">
+    <div class="tri" id="tri"></div>
+    <div class="pilares" id="pilares"></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-meta">
+  <div class="sec-head">
+    <h2 id="h-meta"><span class="sec-num">III.</span> Hacia dónde tienen que ir los números</h2>
+    <p class="muted">Barra = valor del mes elegido. Franja amarilla = zona de meta. El texto indica cuánto falta o en cuánto se supera.</p>
+  </div>
+  <div class="metas" id="metas"></div>
+</section>
+
+<section aria-labelledby="h-det">
+  <div class="sec-head">
+    <h2 id="h-det"><span class="sec-num">IV.</span> Evolución mes a mes</h2>
+    <p class="muted">Pasa el cursor (o toca) sobre los gráficos para ver el valor exacto de cada mes.</p>
   </div>
 
-  <div class="panel">
-    <div class="ph">
-      <h3>Visitas únicas al sitio web</h3>
-      <span class="goal">Meta anual: <b>+10% de visitantes únicos</b>. Línea punteada = base + 10% (base: <span id="baseTxt"></span>).</span>
+  <div class="grid2">
+    <div class="panel" style="--pc: var(--marino)">
+      <div class="ph"><h3>Visitas únicas al sitio web</h3><span class="pillar-tag">Posicionamiento</span></div>
+      <span class="goal">Meta anual: <b>+10% de visitantes únicos</b>. Líneas punteadas = base + 10% (<span id="baseTxt"></span>).</span>
+      <div class="chart"><canvas id="cWeb" role="img" aria-label="Visitas únicas mensuales a los sitios FCV y FCV Oficios"></canvas></div>
     </div>
-    <div class="chart"><canvas id="cWeb" role="img" aria-label="Visitas únicas mensuales a los sitios FCV y FCV Oficios"></canvas></div>
-  </div>
-
-  <div class="panel">
-    <div class="ph">
-      <h3>Engagement en redes sociales</h3>
-      <span class="goal">Franja verde = rango esperado según número de seguidores.</span>
-    </div>
-    <div class="grid4" id="engGrid"></div>
-  </div>
-
-  <div class="panel">
-    <div class="ph">
-      <h3>Menciones en medios externos</h3>
+    <div class="panel" style="--pc: var(--marino)">
+      <div class="ph"><h3>Menciones en medios externos</h3><span class="pillar-tag">Posicionamiento</span></div>
       <span class="goal">Meta: <b>al menos 1 aparición mensual</b>. <span id="mencAcum"></span></span>
+      <div class="chart"><canvas id="cMenc" role="img" aria-label="Menciones mensuales en medios externos"></canvas></div>
     </div>
-    <div class="chart"><canvas id="cMenc" role="img" aria-label="Menciones mensuales en medios externos"></canvas></div>
+  </div>
+
+  <div class="panel" style="--pc: var(--celeste)">
+    <div class="ph"><h3>Engagement en redes sociales</h3><span class="pillar-tag">Conversión real</span></div>
+    <span class="goal">Franja amarilla = rango esperado según número de seguidores.</span>
+    <div class="grid2" id="engGrid"></div>
   </div>
 </section>
 
 <section aria-labelledby="h-matriz">
   <div class="sec-head">
-    <span class="eyebrow">Control mes a mes</span>
-    <h2 id="h-matriz">Cumplimiento por indicador</h2>
+    <h2 id="h-matriz"><span class="sec-num">V.</span> Control de cumplimiento</h2>
     <div class="legend" id="leyenda"></div>
   </div>
   <div class="panel scroll"><table class="matrix" id="matriz"></table></div>
 </section>
 
-<section aria-labelledby="h-int">
+<section aria-labelledby="h-foco">
   <div class="sec-head">
-    <span class="eyebrow">Iniciativas 1 y 2 · Comunicaciones internas</span>
-    <h2 id="h-int">Medición semestral y por evento</h2>
-    <p class="muted">Estos indicadores se alimentan de encuestas. Aparecen como pendientes hasta que la planilla registre un resultado.</p>
+    <h2 id="h-foco"><span class="sec-num">VI.</span> Foco 2026 y cómo lo medimos</h2>
+    <p class="muted">Qué indicador de la planilla da cuenta de cada foco del plan, y dónde todavía no hay medición.</p>
   </div>
-  <div class="grid2" id="interna"></div>
+  <div class="focos" id="focos"></div>
 </section>
 
 <footer>
-  <p>Criterios: visitas web se comparan contra el primer mes con datos del año (o la base definida en <code>CONFIG.baseWeb</code>). Engagement: “Cumple” si el valor alcanza el mínimo del rango esperado. Valores de engagement sobre 100% se marcan “Revisar dato” y no se grafican.</p>
+  <p>Criterios: visitas web se comparan contra el primer mes con datos del año (o la base definida en <code>CONFIG.baseWeb</code>). Engagement “cumple” si alcanza el mínimo del rango esperado. Valores de engagement sobre 100% se marcan “Revisar dato” y no se grafican. Asignación de indicadores a pilares y focos: propuesta del Depto. de Comunicaciones.</p>
   <p id="pie"></p>
 </footer>
 </div>
+<div class="foot"><div class="foot-in"><img src="marca/fcv-logo-horizontal-blanco.png" alt="Fundación Cristo Vive"><span>fcristovive.cl</span></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -240,6 +308,25 @@ const CONFIG = {
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MES_C = MESES.map(m => m.slice(0,3));
 
+const ICON = {
+  heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
+  target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>',
+  money: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M15 8.5c-.6-.9-1.7-1.5-3-1.5-1.8 0-3 1-3 2.3 0 3.2 6 1.8 6 5 0 1.4-1.3 2.4-3 2.4-1.4 0-2.6-.6-3.2-1.6M12 5.5v13"/></svg>',
+};
+// Pilares del modelo (lámina III del Plan 2026).
+const PILARES = [
+  { id: 'esp', nombre: 'Espíritu institucional', color: '#f9b23f', icono: 'heart', que: 'Cultura y pertenencia · coherencia narrativa · fidelización interna · sentido de misión compartida' },
+  { id: 'pos', nombre: 'Posicionamiento', color: '#183d68', icono: 'target', que: 'Presencia en medios · vocerías · relato institucional · legitimidad pública' },
+  { id: 'conv', nombre: 'Conversión real', color: '#0f5695', icono: 'money', que: 'Relaciones que se renuevan · comunidad que actúa · eventos que generan alianzas · vínculos que sostienen ingresos' },
+];
+// Foco 2026 (lámina IV) y los indicadores que lo miden.
+const FOCOS = [
+  { t: 'Profesionalizar el relato institucional de impacto', c: '#183d68', mide: ['web_fcv', 'web_of', 'menc'], nota: 'Se mide con visitas web y menciones en medios.' },
+  { t: 'Fortalecer comunicación interna estructurada (BUK + hitos)', c: '#0f5695', mide: ['int_0', 'int_1', 'int_2', 'int_3'], nota: 'Se mide con las encuestas semestrales y post evento.' },
+  { t: 'Consolidar comunidad digital con conversión real', c: '#f9b23f', mide: ['ig_fcv', 'fb_fcv', 'lk_fcv', 'fb_of'], nota: 'El engagement mide interacción. Aún no hay un indicador de conversión (por ejemplo, socios o aportes originados en canales digitales).' },
+  { t: 'Sistematizar reportes para fidelizar relaciones existentes', c: '#ffcf00', mide: [], nota: 'Sin indicador en la planilla. Podría medirse con el número de reportes enviados a socios y aliados, o su tasa de apertura.' },
+];
+
 /* ===================== Lectura de la planilla ===================== */
 const norm = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
 const decimal = s => { if (s == null) return null; const n = parseFloat(String(s).replace(',', '.')); return isNaN(n) ? null : n; };
@@ -256,20 +343,17 @@ function interpretar(celdas) {
   const filas = celdas.slice(hi + 1);
   const buscar = clave => filas.find(r => r && norm(r[1]).includes(clave)) || [];
   const meses = fila => colMes.map(c => (c >= 0 ? fila[c] : null));
-  const titulo = celdas.slice(0, hi).flat().filter(Boolean).map(String);
 
-  const fWeb = buscar('visitas unicas');
-  const web = meses(fWeb).map(v => {
+  const web = meses(buscar('visitas unicas')).map(v => {
     if (vacio(v)) return null;
     const s = String(v);
     const fcv = s.match(/FCV\s*:\s*([\d.,]+)/i), of = s.match(/Oficios\s*:\s*([\d.,]+)/i);
-    return { fcv: fcv ? entero(fcv[1]) : null, oficios: of ? entero(of[1]) : null, bruto: s };
+    return { fcv: fcv ? entero(fcv[1]) : null, oficios: of ? entero(of[1]) : null };
   });
 
-  const fEng = buscar('engagement');
-  const eng = meses(fEng).map(v => {
+  const eng = meses(buscar('engagement')).map(v => {
     if (vacio(v)) return null;
-    const s = String(v), out = { bruto: s };
+    const s = String(v), out = {};
     const corte = s.search(/oficios/i);
     const partes = { fcv: corte >= 0 ? s.slice(0, corte) : s, oficios: corte >= 0 ? s.slice(corte) : '' };
     for (const [cuenta, txt] of Object.entries(partes)) {
@@ -280,16 +364,19 @@ function interpretar(celdas) {
     return out;
   });
 
-  const fMenc = buscar('menciones');
-  const menc = meses(fMenc).map(v => (vacio(v) ? null : decimal(v)));
+  const menc = meses(buscar('menciones')).map(v => (vacio(v) ? null : decimal(v)));
 
-  const internas = ['se informa', 'clara y util', 'participaron', 'satisfaccion'].map(k => {
+  const nombresInt = ['Se informa por medios internos', 'Información clara y útil', 'Participación en eventos internos', 'Satisfacción con los eventos'];
+  const internas = ['se informa', 'clara y util', 'participaron', 'satisfaccion'].map((k, j) => {
     const f = buscar(k);
-    const vals = meses(f).filter(v => !vacio(v));
-    return { indicador: String(f[1] ?? '').trim(), periodo: String(f[colPer] ?? '').trim(), meta: String(f[colMeta] ?? '').trim(), valores: vals };
+    const valores = meses(f).map(v => (vacio(v) ? null : decimal(v)));
+    const meta = String(f[colMeta] ?? '').trim();
+    const pm = meta.match(/(\d+(?:[.,]\d+)?)\s*%/);
+    return { nombre: nombresInt[j], indicador: String(f[1] ?? '').replace(/\s+/g, ' ').trim(), periodo: String(f[colPer] ?? '').trim(),
+      meta: meta.replace(/infiormación insititucional/i, 'información institucional'), metaPct: pm ? decimal(pm[1]) : null, valores };
   });
 
-  return { web, eng, menc, internas, titulo, metaRedesTxt: String(fEng[colMeta] ?? '') };
+  return { web, eng, menc, internas };
 }
 
 /* ===================== Estados ===================== */
@@ -302,12 +389,14 @@ const EST = {
   base: { c: 'st-nd', i: '●', t: 'Mes base' },
   pend: { c: 'st-pend', i: '…', t: 'Pendiente' },
 };
+const COLOR_EST = { ok: 'var(--good)', prog: 'var(--warn)', bajo: 'var(--crit)', rev: 'var(--serious)', nd: 'var(--none)', base: 'var(--none)', pend: 'var(--none)' };
 const chip = (k, txt) => `<span class="chip ${EST[k].c}"><i aria-hidden="true">${EST[k].i}</i>${txt ?? EST[k].t}</span>`;
-const fmtN = n => n == null ? '—' : n.toLocaleString('es-CL');
+const chipSolo = k => `<span class="chip solo ${EST[k].c}" aria-label="${EST[k].t}"><i aria-hidden="true">${EST[k].i}</i></span>`;
+const fmtN = n => n == null ? '—' : Math.round(n).toLocaleString('es-CL');
 const fmtP = (n, d = 1) => n == null ? '—' : n.toLocaleString('es-CL', { minimumFractionDigits: d, maximumFractionDigits: d }) + '%';
 const fmtVar = n => (n > 0 ? '+' : '') + fmtP(n * 100);
 
-let D, BASE;
+let D, BASE, IND;
 
 function bases() {
   const primero = k => { const i = D.web.findIndex(w => w && w[k] != null); return i < 0 ? null : { v: D.web[i][k], mes: MESES[i] }; };
@@ -331,56 +420,90 @@ function estadoMenc(i) {
   const v = D.menc[i]; if (v == null) return { k: 'nd' };
   return { k: v >= CONFIG.metaMenciones ? 'ok' : 'bajo', val: v };
 }
+function ultimoValor(arr, i) { for (let j = i; j >= 0; j--) if (arr[j] != null) return { v: arr[j], mes: j }; return null; }
+function estadoInt(i, x) {
+  const u = ultimoValor(x.valores, i);
+  if (!u) return { k: 'pend' };
+  return { k: x.metaPct != null && u.v >= x.metaPct ? 'ok' : 'bajo', val: u.v, mes: u.mes };
+}
 const ultimoMes = () => {
   let u = -1;
-  MESES.forEach((_, i) => { if (D.web[i] || D.eng[i] || D.menc[i] != null) u = i; });
+  MESES.forEach((_, i) => { if (D.web[i] || D.eng[i] || D.menc[i] != null || D.internas.some(x => x.valores[i] != null)) u = i; });
   return u;
 };
+const rangoTxt = r => r.max ? `${fmtP(r.min)}–${fmtP(r.max)}` : `≥ ${fmtP(r.min)}`;
+
+// Catálogo uniforme de indicadores: estado mensual + brecha hacia la meta.
+function construirIndicadores() {
+  const webInd = (k, id, nombre) => ({ id, pilar: 'pos', nombre, meta: '+10% sobre la base',
+    estado: i => estadoWeb(i, k),
+    valor: e => e.val != null ? `${fmtN(e.val)} · ${fmtVar(e.varr)}` : '',
+    brecha: i => {
+      const e = estadoWeb(i, k); if (!BASE[k]) return null;
+      const obj = BASE[k].v * (1 + CONFIG.metaWeb);
+      return { actual: e.val, desde: obj, hasta: null, max: Math.max(obj, e.val || 0) * 1.2,
+        txt: e.val == null ? 'Sin dato este mes' : e.val >= obj ? `<b>${fmtN(e.val)}</b>: meta superada (${fmtN(obj)})` : `<b>${fmtN(e.val)}</b> → ${fmtN(obj)}. Faltan <b>${fmtN(obj - e.val)}</b> visitas (+${fmtP((obj / e.val - 1) * 100)})` };
+    } });
+  const redInd = r => ({ id: r.id, pilar: 'conv', nombre: 'Engagement ' + r.nombre, meta: rangoTxt(r),
+    estado: i => estadoRed(i, r),
+    valor: e => e.val != null ? fmtP(e.val, e.val > 100 ? 0 : 2) : '',
+    brecha: i => {
+      const e = estadoRed(i, r);
+      const max = Math.max(r.max ?? r.min * 1.6, e.val != null && e.val <= 100 ? e.val : 0) * 1.2;
+      let txt;
+      if (e.val == null) txt = 'Sin dato este mes';
+      else if (e.k === 'rev') txt = `<b>${fmtP(e.val, 0)}</b>: dato a revisar antes de comparar`;
+      else if (e.val < r.min) txt = `<b>${fmtP(e.val, 2)}</b> → ${fmtP(r.min)}. Faltan <b>${(r.min - e.val).toLocaleString('es-CL', { maximumFractionDigits: 2 })} puntos</b>`;
+      else if (r.max && e.val > r.max) txt = `<b>${fmtP(e.val, 2)}</b>: sobre el rango esperado`;
+      else txt = `<b>${fmtP(e.val, 2)}</b>: dentro del rango esperado`;
+      return { actual: e.k === 'rev' ? null : e.val, desde: r.min, hasta: r.max, max, txt };
+    } });
+  const mencInd = { id: 'menc', pilar: 'pos', nombre: 'Menciones en medios', meta: '1 al mes (12 al año)',
+    estado: estadoMenc, valor: e => e.val != null ? fmtN(e.val) : '',
+    brecha: i => {
+      const acum = D.menc.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0), anual = CONFIG.metaMenciones * 12;
+      return { actual: acum, desde: anual, hasta: null, max: Math.max(anual, acum) * 1.1,
+        txt: acum >= anual ? `<b>${fmtN(acum)}</b> acumuladas: meta anual (${anual}) ya cubierta` : `<b>${fmtN(acum)}</b> de ${anual} anuales. Faltan <b>${fmtN(anual - acum)}</b>` };
+    }, nombreBrecha: 'Menciones acumuladas' };
+  const intInd = (x, j) => ({ id: 'int_' + j, pilar: 'esp', nombre: x.nombre, meta: x.metaPct != null ? `${x.metaPct}%` : x.meta,
+    estado: i => estadoInt(i, x), valor: e => e.val != null ? fmtP(e.val, 0) : '',
+    brecha: i => { const e = estadoInt(i, x);
+      return { actual: e.val ?? null, desde: x.metaPct, hasta: null, max: 100,
+        txt: e.val == null ? `Meta ${fmtP(x.metaPct, 0)} · sin resultado registrado (${x.periodo.toLowerCase()})` : e.val >= x.metaPct ? `<b>${fmtP(e.val, 0)}</b>: meta cumplida (${fmtP(x.metaPct, 0)})` : `<b>${fmtP(e.val, 0)}</b> → ${fmtP(x.metaPct, 0)}. Faltan <b>${(x.metaPct - e.val).toLocaleString('es-CL')} puntos</b>` }; },
+    sinMensual: true });
+  return [
+    ...D.internas.map(intInd),
+    webInd('fcv', 'web_fcv', 'Visitas únicas web FCV'),
+    webInd('oficios', 'web_of', 'Visitas únicas web Oficios'),
+    mencInd,
+    ...CONFIG.redes.map(redInd),
+  ];
+}
+
+function estadoPilar(i, p) {
+  const es = IND.filter(x => x.pilar === p.id).map(x => x.estado(i).k);
+  const med = es.filter(k => k === 'ok' || k === 'bajo' || k === 'prog');
+  if (!med.length) return es.includes('rev') ? 'rev' : 'pend';
+  const ok = med.filter(k => k === 'ok').length;
+  return ok === med.length ? 'ok' : ok || med.includes('prog') ? 'prog' : 'bajo';
+}
+const TXT_PILAR = { ok: 'En meta', prog: 'Parcial', bajo: 'Bajo meta', rev: 'Revisar', pend: 'Sin medición' };
 
 /* ===================== Render ===================== */
 const $ = id => document.getElementById(id);
-const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const css = n => { const v = getComputedStyle(document.documentElement).getPropertyValue(n).trim(); const m = v.match(/^var\((--[\w-]+)\)$/); return m ? css(m[1]) : v; };
 const charts = [];
 
 function render() {
   const sel = +$('mes').value;
   $('mesNombre').textContent = MESES[sel].toLowerCase();
-  renderTiles(sel); renderLectura(sel); renderMatriz(sel); renderInterna(); renderCharts(sel);
-}
-
-function renderTiles(i) {
-  const t = [];
-  for (const [k, nom] of [['fcv', 'Visitas únicas · web FCV'], ['oficios', 'Visitas únicas · web FCV Oficios']]) {
-    const e = estadoWeb(i, k);
-    t.push(`<div class="tile"><span class="k">${nom}</span>
-      <span class="v num">${fmtN(e.val)}</span>
-      <span class="d">${e.varr != null ? `${fmtVar(e.varr)} vs ${BASE[k].mes.toLowerCase()} · meta +${CONFIG.metaWeb * 100}%` : 'Sin dato este mes'}</span>
-      ${chip(e.k, e.k === 'ok' ? 'Meta lograda' : e.k === 'bajo' ? 'Bajo la base' : undefined)}</div>`);
-  }
-  const est = CONFIG.redes.map(r => ({ r, e: estadoRed(i, r) }));
-  const medibles = est.filter(x => x.e.k === 'ok' || x.e.k === 'bajo');
-  const ok = medibles.filter(x => x.e.k === 'ok').length;
-  const rev = est.filter(x => x.e.k === 'rev').length;
-  t.push(`<div class="tile"><span class="k">Engagement en redes</span>
-    <span class="v num">${ok}<small> de ${medibles.length} redes en meta</small></span>
-    <span class="d">${est.filter(x => x.e.val != null && x.e.k !== 'rev').map(x => `${x.r.nombre}: ${fmtP(x.e.val, 2)}`).join(' · ') || 'Sin datos este mes'}</span>
-    ${medibles.length ? chip(ok === medibles.length ? 'ok' : ok ? 'prog' : 'bajo', ok === medibles.length ? 'Todas en meta' : ok ? 'Parcial' : 'Bajo meta') : chip('nd')}
-    ${rev ? chip('rev', rev + ' dato por revisar') : ''}</div>`);
-  const m = estadoMenc(i);
-  const acum = D.menc.slice(0, i + 1).reduce((a, b) => a + (b || 0), 0);
-  t.push(`<div class="tile"><span class="k">Menciones en medios</span>
-    <span class="v num">${fmtN(m.val)}<small> en el mes</small></span>
-    <span class="d">${fmtN(acum)} acumuladas a ${MESES[i].toLowerCase()} · meta: ${CONFIG.metaMenciones} al mes</span>
-    ${chip(m.k)}</div>`);
-  const int = D.internas.filter(x => x.valores.length).length;
-  t.push(`<div class="tile"><span class="k">Comunicación interna (encuestas)</span>
-    <span class="v num">${int}<small> de ${D.internas.length} medidos</small></span>
-    <span class="d">Medición semestral y post evento</span>${chip(int ? 'prog' : 'pend', int ? 'En medición' : 'Pendiente')}</div>`);
-  $('tiles').innerHTML = t.join('');
+  renderLectura(sel); renderModelo(sel); renderMetas(sel); renderCharts(sel); renderMatriz(sel); renderFocos(sel);
 }
 
 function renderLectura(i) {
   const L = [];
+  const ep = PILARES.map(p => ({ p, k: estadoPilar(i, p) }));
+  L.push(`Estado por pilar: ${ep.map(x => `${x.p.nombre} <b>${TXT_PILAR[x.k].toLowerCase()}</b>`).join(' · ')}.`);
   for (const [k, nom] of [['fcv', 'El sitio FCV'], ['oficios', 'El sitio FCV Oficios']]) {
     const e = estadoWeb(i, k);
     if (e.val == null) continue;
@@ -388,74 +511,127 @@ function renderLectura(i) {
     const vsPrev = prev ? ` (${fmtVar(e.val / prev - 1)} respecto de ${MESES[i - 1].toLowerCase()})` : '';
     L.push(`${nom} registró <b>${fmtN(e.val)}</b> visitas únicas${vsPrev}, ${fmtVar(e.varr)} frente a ${BASE[k].mes.toLowerCase()}. ${e.k === 'base' ? 'Es el mes de referencia.' : e.k === 'ok' ? 'Ya supera la meta anual de +10%.' : e.k === 'prog' ? 'Crece, pero aún no alcanza el +10% anual.' : 'Está bajo la base del año.'}`);
   }
-  const red = CONFIG.redes.map(r => ({ r, e: estadoRed(i, r) }));
-  const en = red.filter(x => x.e.k === 'ok').map(x => x.r.nombre), bajo = red.filter(x => x.e.k === 'bajo'), rv = red.filter(x => x.e.k === 'rev');
-  if (en.length) L.push(`En redes, <b>${en.join(' y ')}</b> ${en.length > 1 ? 'alcanzan' : 'alcanza'} el engagement esperado.`);
-  bajo.forEach(x => L.push(`${x.r.nombre} marca ${fmtP(x.e.val, 2)}, bajo el mínimo esperado de ${fmtP(x.r.min)}.`));
-  rv.forEach(x => L.push(`${x.r.nombre} reporta ${fmtP(x.e.val, 0)}: el valor excede el 100% y conviene revisar la fórmula de cálculo antes de informarlo.`));
   const m = estadoMenc(i);
   if (m.val != null) {
     const conDato = D.menc.slice(0, i + 1).filter(v => v != null);
     L.push(`Hubo <b>${fmtN(m.val)} menciones</b> en medios externos. La meta mensual se cumplió en ${conDato.filter(v => v >= CONFIG.metaMenciones).length} de ${conDato.length} meses con registro${conDato.length < i + 1 ? ` (${i + 1 - conDato.length} sin registro)` : ''}.`);
   }
-  if (!D.internas.some(x => x.valores.length)) L.push('Las encuestas de comunicación interna aún no registran resultados en la planilla.');
-  $('lectura').innerHTML = L.map(x => `<li>${x}</li>`).join('') || '<li>Sin datos para este mes.</li>';
+  const red = CONFIG.redes.map(r => ({ r, e: estadoRed(i, r) }));
+  const en = red.filter(x => x.e.k === 'ok').map(x => x.r.nombre);
+  if (en.length) L.push(`En redes, <b>${en.join(' y ')}</b> ${en.length > 1 ? 'alcanzan' : 'alcanza'} el engagement esperado.`);
+  red.filter(x => x.e.k === 'bajo').forEach(x => L.push(`${x.r.nombre} marca ${fmtP(x.e.val, 2)}, bajo el mínimo esperado de ${fmtP(x.r.min)}.`));
+  red.filter(x => x.e.k === 'rev').forEach(x => L.push(`${x.r.nombre} reporta ${fmtP(x.e.val, 0)}: el valor excede el 100% y conviene revisar la fórmula de cálculo antes de informarlo.`));
+  if (!D.internas.some(x => estadoInt(i, x).val != null)) L.push('Espíritu institucional: las encuestas internas aún no registran resultados en la planilla.');
+  $('lectura').innerHTML = L.map(x => `<li>${x}</li>`).join('');
+}
+
+// Triángulo del modelo: tres brazos redondeados entrelazados (lámina III), dibujado con la paleta institucional.
+function trianguloSVG(i) {
+  const T = [150, 46], BL = [52, 222], BR = [248, 222], W = 50;
+  const [esp, pos, conv] = PILARES;
+  const brazo = (a, b, c, extra = '') => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${c}" stroke-width="${W}" stroke-linecap="round"${extra}/>`;
+  const icono = (p, xy, tinta) => {
+    const k = estadoPilar(i, p);
+    return `<g><title>${p.nombre}: ${TXT_PILAR[k]}</title>
+      <circle cx="${xy[0]}" cy="${xy[1]}" r="19" fill="none" stroke="${tinta}" stroke-width="2.5"/>
+      ${ICON[p.icono].replace(/^<svg viewBox="0 0 24 24"/, `<g transform="translate(${xy[0] - 11} ${xy[1] - 11}) scale(${22 / 24})" style="color:${tinta}"`).replace(/<\/svg>$/, '</g>')}
+      <circle cx="${xy[0] + 17}" cy="${xy[1] - 17}" r="8" fill="${COLOR_EST[k]}" stroke="#fff" stroke-width="2.5"/></g>`;
+  };
+  return `<svg viewBox="0 0 300 268" role="img" aria-label="Modelo de comunicaciones: Espíritu institucional, Posicionamiento y Conversión real alrededor de las acciones comunicacionales">
+    <defs><clipPath id="clipBR"><rect x="190" y="150" width="120" height="120"/></clipPath></defs>
+    ${brazo(BL, BR, pos.color)}${brazo(BL, T, conv.color)}${brazo(T, BR, esp.color)}${brazo(BL, BR, pos.color, ' clip-path="url(#clipBR)"')}
+    ${icono(esp, T, 'var(--azul-oscuro)')}${icono(conv, BL, '#fff')}${icono(pos, BR, '#fff')}
+    <text x="150" y="176" text-anchor="middle" font-family="var(--f-sans)" font-weight="800" font-size="8.6" fill="var(--azul-oscuro)" letter-spacing=".04em"><tspan x="150">ACCIONES</tspan><tspan x="150" dy="11">COMUNICACIONALES</tspan></text>
+  </svg>`;
+}
+
+function renderModelo(i) {
+  $('tri').innerHTML = trianguloSVG(i);
+  $('pilares').innerHTML = PILARES.map(p => {
+    const k = estadoPilar(i, p);
+    const items = IND.filter(x => x.pilar === p.id).map(x => { const e = x.estado(i);
+      return `<li><span>${x.nombre}</span>${chipSolo(e.k)}<span class="v">${x.valor(e) || EST[e.k].t} · meta ${x.meta}</span></li>`; }).join('');
+    return `<article class="pilar" style="--pc:${p.color}">
+      <div class="ph"><h3>${p.nombre}</h3>${chip(k, TXT_PILAR[k])}</div>
+      <p class="que">${p.que}</p><ul>${items}</ul></article>`;
+  }).join('');
+}
+
+function renderMetas(i) {
+  $('metas').innerHTML = PILARES.map(p => {
+    const filas = IND.filter(x => x.pilar === p.id).map(x => {
+      const b = x.brecha(i); if (!b) return '';
+      const pct = v => Math.max(0, Math.min(100, (v / b.max) * 100));
+      const zona = b.desde != null ? `<span class="zone" style="left:${pct(b.desde)}%;right:${b.hasta ? 100 - pct(b.hasta) : 0}%"></span>` : '';
+      const barra = b.actual != null ? `<span class="fill" style="width:${pct(b.actual)}%"></span><span class="mk" style="left:${pct(b.actual)}%"></span>` : '';
+      return `<div class="gap" style="--fc:${p.color}"><span class="n">${x.nombreBrecha || x.nombre}<small>Meta: ${x.meta}</small></span>
+        <div class="track" role="img" aria-label="${x.nombre}">${zona}${barra}</div><span class="t">${b.txt}</span></div>`;
+    }).join('');
+    return `<h4 style="--pc:${p.color}">${p.nombre}</h4>${filas}`;
+  }).join('');
 }
 
 function renderMatriz(sel) {
   const hasta = Math.max(ultimoMes(), sel);
-  const cols = MESES.slice(0, Math.max(hasta + 1, 1));
-  const filas = [
-    ['Visitas web FCV', i => { const e = estadoWeb(i, 'fcv'); return [e.k, e.varr != null ? fmtN(e.val) + ' · ' + fmtVar(e.varr) : '']; }],
-    ['Visitas web Oficios', i => { const e = estadoWeb(i, 'oficios'); return [e.k, e.varr != null ? fmtN(e.val) + ' · ' + fmtVar(e.varr) : '']; }],
-    ...CONFIG.redes.map(r => ['Engagement ' + r.nombre, i => { const e = estadoRed(i, r); return [e.k, e.val != null ? fmtP(e.val, e.val > 100 ? 0 : 2) : '']; }]),
-    ['Menciones en medios', i => { const e = estadoMenc(i); return [e.k, e.val != null ? fmtN(e.val) : '']; }],
-  ];
+  const cols = MESES.slice(0, hasta + 1);
   const th = cols.map((m, i) => `<th class="${i === sel ? 'sel' : ''}">${MES_C[i]}</th>`).join('');
-  const tb = filas.map(([n, f]) => `<tr><td>${n}</td>${cols.map((_, i) => { const [k, v] = f(i);
-    return `<td class="${i === sel ? 'sel' : ''}" title="${EST[k].t}${v ? ': ' + v : ''}"><span class="chip ${EST[k].c}" aria-label="${EST[k].t}"><i aria-hidden="true">${EST[k].i}</i></span><span class="val">${v || '&nbsp;'}</span></td>`; }).join('')}</tr>`).join('');
+  const tb = PILARES.map(p => {
+    const rows = IND.filter(x => x.pilar === p.id && !x.sinMensual);
+    const extra = p.id === 'esp' ? `<tr><td colspan="${cols.length + 1}" class="muted">Encuestas semestrales y post evento: ${IND.filter(x => x.pilar === 'esp').map(x => `${x.nombre} ${chipSolo(x.estado(sel).k)}`).join(' · ')}</td></tr>` : '';
+    return `<tr class="grp" style="--pc:${p.color}"><td colspan="${cols.length + 1}">${p.nombre}</td></tr>${extra}` + rows.map(x => `<tr><td>${x.nombre}</td>${cols.map((_, i) => {
+      const e = x.estado(i), v = x.valor(e);
+      return `<td class="${i === sel ? 'sel' : ''}" title="${EST[e.k].t}${v ? ': ' + v : ''}">${chipSolo(e.k)}<span class="val">${v || '&nbsp;'}</span></td>`; }).join('')}</tr>`).join('');
+  }).join('');
   $('matriz').innerHTML = `<thead><tr><th>Indicador</th>${th}</tr></thead><tbody>${tb}</tbody>`;
-  $('leyenda').innerHTML = [['ok', 'Cumple / meta lograda'], ['prog', 'En camino (web: crece, < +10%)'], ['bajo', 'Bajo meta'], ['rev', 'Revisar dato'], ['nd', 'Sin registro'], ['base', 'Mes base (web)']].map(([k, t]) => chip(k, t)).join('');
+  $('leyenda').innerHTML = [['ok', 'Cumple / meta lograda'], ['prog', 'En camino (web: crece, bajo +10%)'], ['bajo', 'Bajo meta'], ['rev', 'Revisar dato'], ['nd', 'Sin registro / mes base'], ['pend', 'Pendiente de medición']].map(([k, t]) => chip(k, t)).join('');
 }
 
-function renderInterna() {
-  $('interna').innerHTML = D.internas.map(x => `<div class="panel int-card">
-    <h3>${x.indicador.replace(/\s+/g, ' ')}</h3>
-    <p class="goal"><b>Meta:</b> ${x.meta.replace(/infiormación insititucional/i, 'información institucional')}</p>
-    <p class="muted">${x.periodo}</p>
-    ${x.valores.length ? chip('prog', 'Resultado: ' + x.valores.join(' · ')) : chip('pend', 'Pendiente de medición')}
-  </div>`).join('');
+function renderFocos(i) {
+  $('focos').innerHTML = FOCOS.map(f => {
+    const ks = f.mide.map(id => IND.find(x => x.id === id)).filter(Boolean).map(x => x.estado(i).k);
+    const med = ks.filter(k => k === 'ok' || k === 'bajo' || k === 'prog');
+    const c = !f.mide.length ? chip('nd', 'Sin indicador') : !med.length ? chip('pend', 'Sin medición aún') :
+      chip(med.every(k => k === 'ok') ? 'ok' : med.some(k => k === 'ok') ? 'prog' : 'bajo', `${med.filter(k => k === 'ok').length} de ${med.length} en meta`);
+    return `<article class="foco" style="--fc:${f.c}"><h3>${f.t}</h3>${c}<p>${f.nota}</p></article>`;
+  }).join('');
 }
 
 function renderCharts(sel) {
   charts.splice(0).forEach(c => c.destroy());
-  const ink2 = css('--ink-2'), grid = css('--grid'), s1 = css('--s1'), s2 = css('--s2'), band = css('--band'), good = css('--good'), surf = css('--surface');
-  Chart.defaults.font.family = css('--f-body'); Chart.defaults.color = ink2;
+  const ink2 = css('--texto-3'), grid = css('--grid'), sF = css('--s-fcv'), sO = css('--s-of'), band = css('--banda'), good = css('--good');
+  Chart.defaults.font.family = css('--f-sans'); Chart.defaults.font.weight = 400; Chart.defaults.color = ink2;
   const hasta = Math.max(ultimoMes(), sel, 5);
   const labels = MES_C.slice(0, hasta + 1);
   const cut = a => a.slice(0, hasta + 1);
   const base = { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
     plugins: { legend: { position: 'top', align: 'start', labels: { usePointStyle: true, boxWidth: 8, boxHeight: 8, padding: 14 } },
-      tooltip: { backgroundColor: css('--ink'), titleColor: surf, bodyColor: surf, padding: 10, cornerRadius: 6 } },
+      tooltip: { backgroundColor: css('--azul-oscuro'), titleColor: '#fff', bodyColor: '#fff', padding: 10, cornerRadius: 8 } },
     scales: { x: { grid: { display: false }, border: { color: grid } }, y: { beginAtZero: true, grid: { color: grid }, border: { display: false }, ticks: { maxTicksLimit: 6 } } } };
-  const punto = (c, i0) => ({ pointRadius: ctx => (ctx.dataIndex === sel ? 6 : 4), pointHoverRadius: 7, pointBackgroundColor: c, pointBorderColor: surf, pointBorderWidth: 2 });
+  const punto = c => ({ pointRadius: ctx => (ctx.dataIndex === sel ? 6 : 4), pointHoverRadius: 7, pointBackgroundColor: c, pointBorderColor: '#fff', pointBorderWidth: 2 });
 
-  // Web
   const fcv = cut(D.web.map(w => (w ? w.fcv : null))), of = cut(D.web.map(w => (w ? w.oficios : null)));
   const meta = k => BASE[k] ? labels.map(() => Math.round(BASE[k].v * (1 + CONFIG.metaWeb))) : [];
   charts.push(new Chart($('cWeb'), { type: 'line', data: { labels, datasets: [
-    { label: 'Sitio FCV', data: fcv, borderColor: s1, borderWidth: 2, tension: 0, ...punto(s1) },
-    { label: 'Sitio FCV Oficios', data: of, borderColor: s2, borderWidth: 2, tension: 0, ...punto(s2) },
-    { label: 'Meta FCV (+10%)', data: meta('fcv'), borderColor: s1, borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0 },
-    { label: 'Meta Oficios (+10%)', data: meta('oficios'), borderColor: s2, borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0 },
+    { label: 'Sitio FCV', data: fcv, borderColor: sF, borderWidth: 2, tension: 0, ...punto(sF) },
+    { label: 'Sitio FCV Oficios', data: of, borderColor: sO, borderWidth: 2, tension: 0, ...punto(sO) },
+    { label: 'Meta FCV', data: meta('fcv'), borderColor: sF, borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0 },
+    { label: 'Meta Oficios', data: meta('oficios'), borderColor: sO, borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0 },
   ] }, options: { ...base, plugins: { ...base.plugins, tooltip: { ...base.plugins.tooltip, callbacks: { label: c => ` ${c.dataset.label}: ${fmtN(c.parsed.y)}` } } } } }));
 
-  // Engagement (small multiples)
-  $('engGrid').innerHTML = CONFIG.redes.map(r => `<div class="panel">
-      <div class="ph"><h3>${r.nombre}</h3><span class="goal">Esperado: <b>${r.max ? fmtP(r.min) + '–' + fmtP(r.max) : '≥ ' + fmtP(r.min)}</b></span></div>
+  const mc = cut(D.menc);
+  charts.push(new Chart($('cMenc'), { type: 'bar', data: { labels, datasets: [
+    { label: 'Menciones', data: mc, backgroundColor: mc.map((_, i) => (i === sel ? css('--amarillo-oro') : css('--azul-oscuro'))), borderRadius: { topLeft: 4, topRight: 4 }, borderSkipped: 'bottom', maxBarThickness: 34, order: 2 },
+    { type: 'line', label: 'Meta mensual', data: labels.map(() => CONFIG.metaMenciones), borderColor: good, borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0, order: 1 },
+  ] }, options: { ...base, plugins: { ...base.plugins, tooltip: { ...base.plugins.tooltip, callbacks: { label: c => c.datasetIndex === 0 && c.parsed.y == null ? ' Sin registro' : ` ${c.dataset.label}: ${fmtN(c.parsed.y)}` } } } } }));
+  const acum = D.menc.slice(0, sel + 1).reduce((a, b) => a + (b || 0), 0);
+  $('mencAcum').textContent = `Acumulado a ${MESES[sel].toLowerCase()}: ${fmtN(acum)}.`;
+
+  $('engGrid').innerHTML = CONFIG.redes.map(r => `<div class="sub">
+      <div class="ph"><h3>${r.nombre}</h3><span class="goal">Esperado: <b>${rangoTxt(r)}</b></span></div>
       <div class="chart sm"><canvas id="c_${r.id}" role="img" aria-label="Engagement mensual ${r.nombre}"></canvas></div>
       <p class="note" id="n_${r.id}"></p></div>`).join('');
   for (const r of CONFIG.redes) {
+    const c = r.cuenta === 'fcv' ? sF : sO;
     const raw = cut(D.eng.map(e => (e ? e[r.cuenta + '_' + r.red] ?? null : null)));
     const fuera = raw.map((v, i) => (v != null && v > 100 ? `${MES_C[i]}: ${fmtP(v, 0)}` : null)).filter(Boolean);
     const vals = raw.map(v => (v != null && v > 100 ? null : v));
@@ -464,28 +640,54 @@ function renderCharts(sel) {
     charts.push(new Chart($('c_' + r.id), { type: 'line', data: { labels, datasets: [
       { label: 'mín', data: labels.map(() => r.min), borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, fill: false },
       { label: 'máx', data: labels.map(() => r.max ?? techo), borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, backgroundColor: band, fill: '-1' },
-      { label: r.nombre, data: vals, borderColor: r.cuenta === 'fcv' ? s1 : s2, borderWidth: 2, tension: 0, ...punto(r.cuenta === 'fcv' ? s1 : s2) },
+      { label: r.nombre, data: vals, borderColor: c, borderWidth: 2, tension: 0, ...punto(c) },
     ] }, options: { ...base, plugins: { legend: { display: false },
-        tooltip: { ...base.plugins.tooltip, filter: c => c.datasetIndex === 2, callbacks: { label: c => ` Engagement: ${fmtP(c.parsed.y, 2)}`, footer: () => `Esperado: ${r.max ? fmtP(r.min) + '–' + fmtP(r.max) : '≥ ' + fmtP(r.min)}` } } },
+        tooltip: { ...base.plugins.tooltip, filter: t => t.datasetIndex === 2, callbacks: { label: t => ` Engagement: ${fmtP(t.parsed.y, 2)}`, footer: () => `Esperado: ${rangoTxt(r)}` } } },
       scales: { ...base.scales, y: { ...base.scales.y, max: Math.ceil(techo), ticks: { maxTicksLimit: 5, callback: v => v + '%' } } } } }));
   }
-
-  // Menciones
-  const mc = cut(D.menc);
-  charts.push(new Chart($('cMenc'), { type: 'bar', data: { labels, datasets: [
-    { label: 'Menciones', data: mc, backgroundColor: mc.map((_, i) => (i === sel ? css('--accent') : s1)), borderRadius: { topLeft: 4, topRight: 4 }, borderSkipped: 'bottom', maxBarThickness: 36, order: 2 },
-    { type: 'line', label: 'Meta mensual', data: labels.map(() => CONFIG.metaMenciones), borderColor: good, borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 0, order: 1 },
-  ] }, options: { ...base, plugins: { ...base.plugins, tooltip: { ...base.plugins.tooltip, callbacks: { label: c => c.datasetIndex === 0 && c.parsed.y == null ? ' Sin registro' : ` ${c.dataset.label}: ${fmtN(c.parsed.y)}` } } } } }));
-  const acum = D.menc.slice(0, sel + 1).reduce((a, b) => a + (b || 0), 0);
-  $('mencAcum').textContent = `Acumulado a ${MESES[sel].toLowerCase()}: ${fmtN(acum)}.`;
 }
+
+
+/* ===================== Patrón Caminos (firma) =====================
+   Trazos paralelos a 45° subiendo a la derecha, grosor parejo, puntas redondas, tramos de largo variable.
+   Carriles en el orden de los corazones: azul, blanco, amarillo resaltado. Entra por el borde derecho,
+   denso ahí y raleándose hacia el contenido; nunca pasa detrás de textos ni del logo. */
+function dibujarCaminos() {
+  const cv = $('caminos'); if (!cv) return;
+  const w = cv.clientWidth, h = cv.clientHeight, dpr = window.devicePixelRatio || 1;
+  cv.width = w * dpr; cv.height = h * dpr;
+  const g = cv.getContext('2d'); g.scale(dpr, dpr); g.clearRect(0, 0, w, h);
+  const t = Math.max(5, Math.min(9, w * 0.006)), paso = t * 3; // separación entre carriles ≈ 2× grosor
+  const colores = [css('--azul'), css('--blanco'), css('--amarillo-resaltado')];
+  let semilla = 7; const rnd = () => (semilla = (semilla * 16807) % 2147483647) / 2147483647;
+  const borde = w, alcance = w < 700 ? w * 0.22 : Math.min(w * 0.42, 520); // franja de entrada desde la derecha
+  g.lineCap = 'round'; g.lineWidth = t;
+  const d = Math.SQRT1_2;                                         // dirección (1,-1) normalizada
+  for (let c = 0, carril = 0; c < w + h; c += paso, carril++) {   // cada carril: recta x + y = c
+    g.strokeStyle = colores[carril % 3];
+    let s = -rnd() * 6 * t;
+    while (true) {
+      const largo = t * (2 + rnd() * 11), hueco = t * (2 + rnd() * 4);
+      const x0 = c - h + s * d, y0 = h - s * d;                     // desde el borde inferior, a lo largo del carril
+      const x1 = x0 + largo * d, y1 = y0 - largo * d;
+      if (y1 > h + t && y0 > h + t) { s += largo + hueco; continue; }
+      if (y0 < -t || x0 > w + t) break;
+      const xm = (x0 + x1) / 2, dist = borde - xm;              // distancia al borde de entrada
+      const p = dist < 0 ? 1 : Math.max(0, 1 - dist / alcance);
+      if (rnd() < p * p * 1.15) { g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); }
+      s += largo + hueco;
+    }
+  }
+}
+window.addEventListener('resize', () => { clearTimeout(dibujarCaminos._t); dibujarCaminos._t = setTimeout(dibujarCaminos, 120); });
 
 /* ===================== Carga de datos ===================== */
 function cargar(celdas, origen) {
   D = interpretar(celdas);
   BASE = bases();
-  $('baseTxt').textContent = ['fcv', 'oficios'].map(k => BASE[k] ? `${k === 'fcv' ? 'FCV' : 'Oficios'} ${fmtN(BASE[k].v)} en ${BASE[k].mes.toLowerCase()}` : '').filter(Boolean).join('; ');
-  $('fuente').textContent = origen;
+  IND = construirIndicadores();
+  $('baseTxt').textContent = ['fcv', 'oficios'].map(k => BASE[k] ? `base ${k === 'fcv' ? 'FCV' : 'Oficios'}: ${fmtN(BASE[k].v)} en ${BASE[k].mes.toLowerCase()}` : '').filter(Boolean).join('; ');
+  $('fuente').textContent = 'Datos: ' + origen;
   const u = Math.max(ultimoMes(), 0);
   $('mes').innerHTML = MESES.slice(0, u + 1).map((m, i) => `<option value="${i}">${m}</option>`).join('');
   $('mes').value = u;
@@ -498,11 +700,11 @@ async function leerExcel(file) {
   try {
     const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
     const nom = wb.SheetNames.find(n => /comunic/i.test(n));
-    if (!nom) throw new Error('El archivo no tiene una pestaña llamada “Comunicaciones”.');
+    if (!nom) throw new Error('el archivo no tiene una pestaña llamada “Comunicaciones”.');
     const celdas = XLSX.utils.sheet_to_json(wb.Sheets[nom], { header: 1, defval: null, raw: true, blankrows: true });
     cargar(celdas, `${file.name} · pestaña ${nom} · cargado ${new Date().toLocaleDateString('es-CL')}`);
-    msg.className = 'msg ok'; msg.textContent = ' Datos actualizados desde el archivo.';
-  } catch (e) { msg.className = 'msg err'; msg.textContent = ' No pude leer el archivo: ' + e.message; }
+    msg.className = 'msg ok'; msg.textContent = 'Datos actualizados desde el archivo.';
+  } catch (e) { msg.className = 'msg err'; msg.textContent = 'No pude leer el archivo: ' + e.message; }
 }
 
 function csvAFilas(t) {
@@ -525,9 +727,9 @@ const drop = $('drop');
 ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
 drop.addEventListener('drop', e => e.dataTransfer.files[0] && leerExcel(e.dataTransfer.files[0]));
 $('mes').addEventListener('change', render);
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => D && render());
-new MutationObserver(() => D && render()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
+dibujarCaminos();
+document.fonts && document.fonts.ready.then(dibujarCaminos);
 (async () => {
   if (CONFIG.urlCsv) {
     try {
@@ -538,7 +740,7 @@ new MutationObserver(() => D && render()).observe(document.documentElement, { at
     } catch (e) { console.warn('No se pudo leer la URL CSV; uso la copia local.', e); }
   }
   if (window.DATOS_FCV) cargar(window.DATOS_FCV.celdas, `${window.DATOS_FCV.fuente} · pestaña ${window.DATOS_FCV.hoja} · copia del ${new Date(window.DATOS_FCV.actualizado + 'T12:00').toLocaleDateString('es-CL')}`);
-  else $('msg').textContent = ' No hay datos cargados: sube el Excel de indicadores.';
+  else $('msg').textContent = 'No hay datos cargados: sube el Excel de indicadores.';
 })();
 </script>
 </body>

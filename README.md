@@ -5,6 +5,18 @@ del archivo *INDICADORES ÁREAS FCV 2026.xlsx*, para reportar a la dirección ej
 
 ## Qué muestra
 
+El tablero sigue la estructura del *Plan 2026 Comunicaciones* y la identidad visual de la fundación
+(paleta azul + amarillo, FF Neuwelt, logo blanco sobre azul oscuro y patrón Caminos).
+
+1. **Lo que perseguimos**: objetivo 2026, desafíos compartidos y una lectura automática del mes.
+2. **Modelo**: los tres pilares (Espíritu institucional, Posicionamiento, Conversión real) con el
+   estado de cada indicador asignado a ellos.
+3. **Hacia dónde tienen que ir los números**: brecha entre el valor del mes y la meta de cada indicador.
+4. **Evolución mes a mes**, 5. **Control de cumplimiento** y 6. **Foco 2026 y cómo lo medimos**
+   (incluye los focos que aún no tienen indicador).
+
+Detalle de los gráficos:
+
 - **Resumen del mes** (selector arriba a la derecha): fichas con semáforo y una
   "Lectura para dirección ejecutiva" redactada automáticamente a partir de los datos.
 - **Comunicaciones externas** (iniciativa 3):
@@ -50,6 +62,12 @@ Supuestos ajustables en `CONFIG` (al inicio del script de `index.html`):
   promedio 2025, conviene usarlo (`baseWeb`).
 - **Rangos de engagement**: tomados de la columna Meta de la planilla.
 - Valores de engagement sobre 100% (Facebook FCV jun–ago) se marcan **Revisar dato** y no se grafican.
+
+## Tipografía
+
+FF Neuwelt es una fuente con licencia y este repositorio es público, por eso **no se incluye**
+(`fonts/` está en `.gitignore`). Para verla localmente, copia los `.woff2` del paquete de identidad
+en `fonts/`. Sin ellos, el tablero usa Lexend como alternativa.
 
 ## Publicar en GitHub Pages
 
